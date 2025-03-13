@@ -200,22 +200,32 @@
             });
           }
           
-          // Load user-specific data if on the appropriate page
-          if (typeof OrdersModule !== 'undefined' && typeof OrdersModule.loadOrders === 'function') {
-            OrdersModule.loadOrders();
+          // Load user-specific data if on the appropriate page and OrdersModule exists
+          try {
+            if (window.OrdersModule && typeof window.OrdersModule.loadOrders === 'function') {
+              console.log('[Auth] Calling OrdersModule.loadOrders()');
+              window.OrdersModule.loadOrders();
+            } else {
+              console.log('[Auth] OrdersModule not available or loadOrders not a function, skipping');
+            }
+          } catch (error) {
+            console.warn('[Auth] Error calling OrdersModule.loadOrders:', error);
           }
           
           // Pre-fill address if on order page
           // Wrap in setTimeout with a longer delay to ensure OrderPageModule is fully initialized
           setTimeout(() => {
-            if (typeof OrderPageModule !== 'undefined' && typeof OrderPageModule.prefillAddressIfLoggedIn === 'function') {
-              try {
-                OrderPageModule.prefillAddressIfLoggedIn();
-              } catch (error) {
-                console.warn('Error pre-filling address:', error);
+            try {
+              if (window.OrderPageModule && typeof window.OrderPageModule.prefillAddressIfLoggedIn === 'function') {
+                console.log('[Auth] Calling OrderPageModule.prefillAddressIfLoggedIn()');
+                window.OrderPageModule.prefillAddressIfLoggedIn();
+              } else {
+                console.log('[Auth] OrderPageModule not available or prefillAddressIfLoggedIn not a function, skipping');
               }
+            } catch (error) {
+              console.warn('[Auth] Error pre-filling address:', error);
             }
-          }, 100); // Increased delay to ensure DOM is ready
+          }, 300); // Increased delay to ensure DOM is ready
 
           // Load user profile data if available
           this.loadUserData(user);
