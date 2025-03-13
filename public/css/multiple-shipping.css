@@ -1,0 +1,109 @@
+/* Multiple Shipping Styles */
+
+/* Multiple shipping items */
+.multiple-shipping-items {
+  margin-bottom: 20px;
+}
+
+.multiple-shipping-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.multiple-shipping-item-info {
+  flex: 1;
+}
+
+.multiple-shipping-item-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.multiple-shipping-item-price {
+  color: #666;
+}
+
+.multiple-shipping-item-address {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.multiple-shipping-item-address label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.multiple-shipping-item-address select {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Confirm item with address */
+.confirm-item {
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.confirm-item-details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #ccc;
+}
+
+.confirm-item-name {
+  font-weight: bold;
+}
+
+.confirm-item-address {
+  display: flex;
+  margin-top: 10px;
+}
+
+.confirm-address-label {
+  font-weight: bold;
+  margin-right: 10px;
+  min-width: 60px;
+}
+
+.confirm-address-details {
+  color: #555;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .multiple-shipping-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .multiple-shipping-item-info {
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  
+  .multiple-shipping-item-address {
+    width: 100%;
+  }
+  
+  .confirm-item-details {
+    flex-direction: column;
+  }
+  
+  .confirm-item-price {
+    margin-top: 5px;
+  }
+}
