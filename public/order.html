@@ -29,7 +29,7 @@
         <ul class="nav-links">
           <li><a href="/">ホーム</a></li>
           <li><a href="/">商品一覧</a></li>
-          <li><a href="/">注文</a></li>
+          <li><a href="/order.html" class="active">注文</a></li>
           <li><a href="/">アカウント</a></li>
         </ul>
       </nav>
@@ -202,7 +202,7 @@
           <ul>
             <li><a href="/">ホーム</a></li>
             <li><a href="/">商品一覧</a></li>
-            <li><a href="/">注文方法</a></li>
+            <li><a href="/order.html">注文方法</a></li>
             <li><a href="/">お問い合わせ</a></li>
           </ul>
         </div>
@@ -222,41 +222,13 @@
   <!-- Core scripts needed for initial page load -->
   <script src="js/api.js"></script>
   
-  <!-- Auth script needed for login/register functionality -->
+  <!-- Load the auth module -->
   <script src="js/auth.js"></script>
   
   <!-- Order page specific scripts -->
   <script src="js/order.js"></script>
   
-  <!-- Script to ensure Auth is properly initialized -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Check if Auth is defined
-      if (typeof Auth !== 'undefined') {
-        console.log('Auth module is defined in order.html');
-        
-        // Initialize Auth if not already initialized
-        if (typeof Auth.init === 'function' && !Auth._initialized) {
-          console.log('Initializing Auth module in order.html');
-          Auth.init().catch(err => console.error('Error initializing Auth in order.html:', err));
-        }
-      } else {
-        console.error('Auth module is not defined in order.html. Using core.min.js instead.');
-        
-        // Load core.min.js as a fallback
-        const coreScript = document.createElement('script');
-        coreScript.src = 'js/build/core.min.js';
-        coreScript.onload = () => {
-          console.log('core.min.js loaded as fallback');
-          
-          // Initialize Auth if it's now defined
-          if (typeof Auth !== 'undefined' && typeof Auth.init === 'function' && !Auth._initialized) {
-            Auth.init().catch(err => console.error('Error initializing Auth from core.min.js:', err));
-          }
-        };
-        document.body.appendChild(coreScript);
-      }
-    });
-  </script>
+  <!-- Debug authentication script (only in development) -->
+  <!-- <script src="js/auth-debug.js"></script> -->
 </body>
 </html>

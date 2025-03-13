@@ -30,7 +30,7 @@ app.use(compression());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'farm-order-secret',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true, // Changed to true to create session for all requests
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/farm_order_system',
     ttl: 14 * 24 * 60 * 60 // 14 days
@@ -39,7 +39,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
     sameSite: 'lax', // Add SameSite attribute to prevent third-party cookie issues
-    httpOnly: true // Enhance security by making cookies inaccessible to JavaScript
+    httpOnly: true, // Enhance security by making cookies inaccessible to JavaScript
+    path: '/' // Ensure cookie is available for all paths
   }
 }));
 

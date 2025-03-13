@@ -662,30 +662,28 @@ const OrderPageModule = {
    * Pre-fill address if user is logged in
    */
   prefillAddressIfLoggedIn() {
-    // Check if Auth is initialized and user is authenticated
-    if (typeof Auth !== 'undefined' && Auth.isAuthenticated() && Auth.currentUser && Auth.currentUser.addresses && Auth.currentUser.addresses.length > 0) {
+    // Use the Auth module
+    if (Auth && Auth.isAuthenticated() && Auth.currentUser && Auth.currentUser.addresses && Auth.currentUser.addresses.length > 0) {
       console.log('User is authenticated, pre-filling address');
       
       // Get default address or first address
       const defaultAddress = Auth.currentUser.addresses.find(addr => addr.isDefault) || Auth.currentUser.addresses[0];
       
-      // Fill first destination form
-      document.getElementById('name-1').value = defaultAddress.name || '';
-      document.getElementById('phone-1').value = defaultAddress.phone || '';
-      document.getElementById('postal-1').value = defaultAddress.postalCode || '';
-      
-      // Check if prefecture/city fields exist (they might have different IDs)
+      // Fill first destination form - with null checks
+      const nameInput = document.getElementById('name-1');
+      const phoneInput = document.getElementById('phone-1');
+      const postalInput = document.getElementById('postal-1');
+      const addressInput = document.getElementById('address-1');
       const prefectureInput = document.getElementById('prefecture-1');
-      if (prefectureInput) {
-        prefectureInput.value = defaultAddress.prefecture || '';
-      }
-      
       const cityInput = document.getElementById('city-1');
-      if (cityInput) {
-        cityInput.value = defaultAddress.city || '';
-      }
       
-      document.getElementById('address-1').value = defaultAddress.address || '';
+      // Only set values if elements exist
+      if (nameInput) nameInput.value = defaultAddress.name || '';
+      if (phoneInput) phoneInput.value = defaultAddress.phone || '';
+      if (postalInput) postalInput.value = defaultAddress.postalCode || '';
+      if (prefectureInput) prefectureInput.value = defaultAddress.prefecture || '';
+      if (cityInput) cityInput.value = defaultAddress.city || '';
+      if (addressInput) addressInput.value = defaultAddress.address || '';
       
       // Update destination data
       this.destinations[0].name = defaultAddress.name || '';
@@ -859,10 +857,13 @@ const OrderPageModule = {
    */
   async placeOrder() {
     try {
+      // Use AuthShared if available, otherwise fall back to Auth
+      const authModule = typeof AuthShared !== 'undefined' ? AuthShared : Auth;
+      
       // Check if user is authenticated
-      if (!Auth.isAuthenticated()) {
+      if (!authModule.isAuthenticated()) {
         alert('注文を確定するにはログインしてください。');
-        Auth.showLoginModal();
+        authModule.showLoginModal();
         return;
       }
       
@@ -972,15 +973,18 @@ const OrderPageModule = {
     const loginBtn = document.getElementById('login-btn');
     const registerBtn = document.getElementById('register-btn');
     
-    if (loginBtn && typeof Auth !== 'undefined') {
+    // Use AuthShared if available, otherwise fall back to Auth
+    const authModule = typeof AuthShared !== 'undefined' ? AuthShared : Auth;
+    
+    if (loginBtn && authModule) {
       loginBtn.addEventListener('click', () => {
-        Auth.showLoginModal();
+        authModule.showLoginModal();
       });
     }
     
-    if (registerBtn && typeof Auth !== 'undefined') {
+    if (registerBtn && authModule) {
       registerBtn.addEventListener('click', () => {
-        Auth.showRegisterModal();
+        authModule.showRegisterModal();
       });
     }
   }

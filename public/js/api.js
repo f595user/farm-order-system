@@ -15,7 +15,9 @@ const API = {
    */
   async get(endpoint) {
     try {
-      const response = await fetch(`${this.baseURL}${endpoint}`);
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        credentials: 'include' // Include cookies with the request
+      });
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
@@ -41,7 +43,8 @@ const API = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        credentials: 'include' // Include cookies with the request
       });
       
       if (!response.ok) {
@@ -69,7 +72,8 @@ const API = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        credentials: 'include' // Include cookies with the request
       });
       
       if (!response.ok) {
@@ -92,7 +96,8 @@ const API = {
   async delete(endpoint) {
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include' // Include cookies with the request
       });
       
       if (!response.ok) {

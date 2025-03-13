@@ -29,11 +29,11 @@
       </div>
       <nav>
         <ul class="nav-links">
-          <li><a href="#" class="active" data-tab="home">ホーム</a></li>
-          <li><a href="#" data-tab="products">商品一覧</a></li>
-          <li><a href="#" data-tab="orders">注文</a></li>
-          <li><a href="#" data-tab="account">アカウント</a></li>
-          <li class="admin-link hidden"><a href="#" data-tab="admin">管理者</a></li>
+          <li><a href="/" class="active" data-tab="home">ホーム</a></li>
+          <li><a href="/" data-tab="products">商品一覧</a></li>
+          <li><a href="/order.html" data-tab="orders">注文</a></li>
+          <li><a href="/" data-tab="account">アカウント</a></li>
+          <li class="admin-link hidden"><a href="/" data-tab="admin">管理者</a></li>
         </ul>
       </nav>
       <div class="user-actions">
@@ -331,10 +331,10 @@
         <div class="footer-section">
           <h3>リンク</h3>
           <ul>
-            <li><a href="#">ホーム</a></li>
-            <li><a href="#">商品一覧</a></li>
-            <li><a href="#">注文方法</a></li>
-            <li><a href="#">お問い合わせ</a></li>
+            <li><a href="/">ホーム</a></li>
+            <li><a href="/">商品一覧</a></li>
+            <li><a href="/order.html">注文方法</a></li>
+            <li><a href="/">お問い合わせ</a></li>
           </ul>
         </div>
         <div class="footer-section">
@@ -350,28 +350,19 @@
     </div>
   </footer>
 
-  <!-- Load Auth module directly first to ensure it's defined before any scripts that depend on it -->
+  <!-- Load API first -->
   <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
   
-  <!-- Initialize Auth module immediately -->
-  <script>
-    // Initialize Auth module as soon as it's loaded
-    if (typeof Auth !== 'undefined' && typeof Auth.init === 'function') {
-      console.log('Initializing Auth module immediately');
-      Auth.init().catch(err => console.error('Error initializing Auth:', err));
-    } else {
-      console.error('Auth module not properly defined after loading auth.js');
-    }
-  </script>
+  <!-- Load the auth module -->
+  <script src="js/auth.js"></script>
   
   <!-- Load remaining core scripts -->
   <script src="js/products.js"></script>
   <script src="js/orders.js"></script>
   <script src="js/app.js"></script>
   
-  <!-- Login fix script to ensure login button works correctly -->
-  <script src="js/login-fix.js"></script>
+  <!-- Debug authentication script (only in development) -->
+  <!-- <script src="js/auth-debug.js"></script> -->
   
   <!-- Load admin scripts after Auth is initialized -->
   <script>

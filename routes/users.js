@@ -81,9 +81,11 @@ router.post('/login', (req, res, next) => {
 // @route   GET /api/users/logout
 // @desc    Logout user
 // @access  Private
-router.get('/logout', (req, res) => {
-  req.logout();
-  res.json({ message: 'Logged out successfully' });
+router.get('/logout', (req, res, next) => {
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    res.json({ message: 'Logged out successfully' });
+  });
 });
 
 // @route   GET /api/users/current
@@ -96,6 +98,22 @@ router.get('/current', ensureAuthenticated, (req, res) => {
     email: req.user.email,
     role: req.user.role,
     addresses: req.user.addresses
+  });
+});
+
+// @route   GET /api/users/debug
+// @desc    Debug endpoint to check session
+// @access  Public
+router.get('/debug', (req, res) => {
+  res.json({
+    isAuthenticated: req.isAuthenticated(),
+    session: req.session,
+    user: req.user ? {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    } : null
   });
 });
 

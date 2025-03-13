@@ -1,9 +1,7 @@
 /**
- * Authentication Module
- * 
- * This file provides a comprehensive authentication solution for the Farm Order System.
- * It combines functionality from auth-module.js, auth-shared.js, auth.js, and includes
- * the modular structure from the src/auth directory.
+ * Authentication Module (Compiled)
+ * This file is a compiled version of the auth module for use in non-module environments.
+ * It provides all authentication functionality in a single file.
  */
 
 // Create a self-executing function to avoid polluting the global scope
@@ -216,9 +214,6 @@
               }
             }
           }, 100); // Increased delay to ensure DOM is ready
-
-          // Load user profile data if available
-          this.loadUserData(user);
         } else {
           // User is not logged in
           if (authButtons) authButtons.classList.remove('hidden');
@@ -243,69 +238,6 @@
       } catch (error) {
         console.error('Error updating auth UI:', error);
       }
-    },
-
-    /**
-     * Load user-specific data
-     * @param {Object} user - User data
-     */
-    loadUserData(user) {
-      // Load user profile data if elements exist
-      const nameInput = document.getElementById('name');
-      const emailInput = document.getElementById('email');
-      
-      if (nameInput && emailInput) {
-        nameInput.value = user.name;
-        emailInput.value = user.email;
-      }
-      
-      // Load user addresses if available
-      if (user.addresses) {
-        this.loadAddresses(user.addresses);
-      }
-    },
-
-    /**
-     * Load user addresses
-     * @param {Array} addresses - User addresses
-     */
-    loadAddresses(addresses) {
-      const addressesList = document.querySelector('.addresses-list');
-      
-      if (!addressesList) return;
-      
-      if (addresses.length === 0) {
-        addressesList.innerHTML = '<p>配送先住所が登録されていません。</p>';
-        return;
-      }
-      
-      addressesList.innerHTML = '';
-      
-      addresses.forEach(address => {
-        const addressCard = document.createElement('div');
-        addressCard.className = `address-card${address.isDefault ? ' default' : ''}`;
-        addressCard.dataset.id = address._id;
-        
-        addressCard.innerHTML = `
-          ${address.isDefault ? '<span class="default-badge">デフォルト</span>' : ''}
-          <div class="address-name">${address.name}</div>
-          <div class="address-details">
-            <div>${address.phone}</div>
-            <div>${address.postalCode}</div>
-            <div>${address.city} ${address.address}</div>
-          </div>
-          <div class="address-actions">
-            <button class="btn edit-address-btn" data-id="${address._id}">編集</button>
-            <button class="btn delete-address-btn" data-id="${address._id}">削除</button>
-            ${!address.isDefault ? `<button class="btn btn-primary set-default-btn" data-id="${address._id}">デフォルトに設定</button>` : ''}
-          </div>
-        `;
-        
-        addressesList.appendChild(addressCard);
-      });
-      
-      // Add event listeners for address actions
-      this.setupAddressEventListeners();
     },
 
     /**
@@ -403,76 +335,8 @@
             });
           });
         }
-        
-        // Profile form
-        const profileForm = document.getElementById('profile-form');
-        if (profileForm) {
-          profileForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.updateProfile();
-          });
-        }
-        
-        // Add address button
-        const addAddressBtn = document.getElementById('add-address-btn');
-        if (addAddressBtn) {
-          addAddressBtn.addEventListener('click', () => {
-            this.showAddressModal();
-          });
-        }
-        
-        // Address form
-        const addressForm = document.getElementById('address-form');
-        if (addressForm) {
-          addressForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveAddress();
-          });
-        }
       } catch (error) {
         console.error('Error setting up event listeners:', error);
-      }
-    },
-
-    /**
-     * Set up event listeners for address actions
-     */
-    setupAddressEventListeners() {
-      try {
-        // Edit address buttons
-        const editButtons = document.querySelectorAll('.edit-address-btn');
-        if (editButtons && editButtons.length > 0) {
-          editButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-              const addressId = btn.dataset.id;
-              this.editAddress(addressId);
-            });
-          });
-        }
-        
-        // Delete address buttons
-        const deleteButtons = document.querySelectorAll('.delete-address-btn');
-        if (deleteButtons && deleteButtons.length > 0) {
-          deleteButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-              const addressId = btn.dataset.id;
-              this.deleteAddress(addressId);
-            });
-          });
-        }
-        
-        // Set default address buttons
-        const defaultButtons = document.querySelectorAll('.set-default-btn');
-        if (defaultButtons && defaultButtons.length > 0) {
-          defaultButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-              const addressId = btn.dataset.id;
-              this.setDefaultAddress(addressId);
-            });
-          });
-        }
-      } catch (error) {
-        console.error('Error setting up address event listeners:', error);
       }
     },
 
@@ -515,61 +379,6 @@
         if (registerName) registerName.focus();
       } catch (error) {
         console.error('Error showing register modal:', error);
-      }
-    },
-
-    /**
-     * Show address modal for adding or editing an address
-     * @param {Object} address - Address data for editing, null for adding
-     */
-    showAddressModal(address = null) {
-      try {
-        const modal = document.getElementById('address-modal');
-        const form = document.getElementById('address-form');
-        
-        if (!modal || !form) {
-          console.error('Address modal or form not found');
-          return;
-        }
-        
-        const title = modal.querySelector('h2');
-        
-        // Reset form
-        form.reset();
-        
-        if (address) {
-          // Editing existing address
-          if (title) title.textContent = '配送先住所を編集';
-          form.dataset.id = address._id;
-          form.dataset.mode = 'edit';
-          
-          // Fill form with address data
-          const nameInput = document.getElementById('address-name');
-          const phoneInput = document.getElementById('address-phone');
-          const streetInput = document.getElementById('address-street');
-          const cityInput = document.getElementById('address-city');
-          const postalInput = document.getElementById('address-postal');
-          const defaultCheck = document.getElementById('address-default');
-          
-          if (nameInput) nameInput.value = address.name;
-          if (phoneInput) phoneInput.value = address.phone;
-          if (streetInput) streetInput.value = address.address;
-          if (cityInput) cityInput.value = address.city;
-          if (postalInput) postalInput.value = address.postalCode;
-          if (defaultCheck) defaultCheck.checked = address.isDefault;
-        } else {
-          // Adding new address
-          if (title) title.textContent = '新しい配送先住所を追加';
-          form.dataset.id = '';
-          form.dataset.mode = 'add';
-        }
-        
-        modal.style.display = 'block';
-        
-        const nameInput = document.getElementById('address-name');
-        if (nameInput) nameInput.focus();
-      } catch (error) {
-        console.error('Error showing address modal:', error);
       }
     },
 
@@ -663,156 +472,6 @@
         alert('ログアウトしました。');
       } catch (error) {
         alert(`ログアウトに失敗しました: ${error.message}`);
-      }
-    },
-
-    /**
-     * Update user profile
-     */
-    async updateProfile() {
-      if (!AuthService.currentUser) return;
-      
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      
-      if (!name || !email) {
-        alert('名前とメールアドレスを入力してください。');
-        return;
-      }
-      
-      try {
-        const updatedUser = await API.user.updateProfile(AuthService.currentUser.id, { name, email });
-        AuthService.currentUser = updatedUser;
-        
-        // Update UI
-        this.updateAuthUI(AuthService.currentUser);
-        
-        // Show success message
-        alert('プロフィールを更新しました。');
-      } catch (error) {
-        alert(`プロフィールの更新に失敗しました: ${error.message}`);
-      }
-    },
-
-    /**
-     * Save address (add or update)
-     */
-    async saveAddress() {
-      if (!AuthService.currentUser) return;
-      
-      const form = document.getElementById('address-form');
-      const mode = form.dataset.mode;
-      const addressId = form.dataset.id;
-      
-      const addressData = {
-        name: document.getElementById('address-name').value,
-        phone: document.getElementById('address-phone').value,
-        address: document.getElementById('address-street').value,
-        city: document.getElementById('address-city').value,
-        postalCode: document.getElementById('address-postal').value,
-        isDefault: document.getElementById('address-default').checked
-      };
-      
-      if (!addressData.name || !addressData.phone || !addressData.address || !addressData.city || !addressData.postalCode) {
-        alert('すべての項目を入力してください。');
-        return;
-      }
-      
-      try {
-        let response;
-        
-        if (mode === 'add') {
-          // Add new address
-          response = await API.user.addAddress(AuthService.currentUser.id, addressData);
-        } else {
-          // Update existing address
-          response = await API.user.updateAddress(AuthService.currentUser.id, addressId, addressData);
-        }
-        
-        // Update addresses in current user
-        AuthService.currentUser.addresses = response.addresses;
-        
-        // Close modal
-        document.getElementById('address-modal').style.display = 'none';
-        
-        // Update addresses list
-        this.loadAddresses(AuthService.currentUser.addresses);
-        
-        // Show success message
-        alert(mode === 'add' ? '住所を追加しました。' : '住所を更新しました。');
-      } catch (error) {
-        alert(`住所の${mode === 'add' ? '追加' : '更新'}に失敗しました: ${error.message}`);
-      }
-    },
-
-    /**
-     * Edit address
-     * @param {string} addressId - Address ID
-     */
-    editAddress(addressId) {
-      if (!AuthService.currentUser || !AuthService.currentUser.addresses) return;
-      
-      const address = AuthService.currentUser.addresses.find(addr => addr._id === addressId);
-      
-      if (address) {
-        this.showAddressModal(address);
-      }
-    },
-
-    /**
-     * Delete address
-     * @param {string} addressId - Address ID
-     */
-    async deleteAddress(addressId) {
-      if (!AuthService.currentUser) return;
-      
-      if (!confirm('この住所を削除してもよろしいですか？')) {
-        return;
-      }
-      
-      try {
-        const response = await API.user.deleteAddress(AuthService.currentUser.id, addressId);
-        
-        // Update addresses in current user
-        AuthService.currentUser.addresses = response.addresses;
-        
-        // Update addresses list
-        this.loadAddresses(AuthService.currentUser.addresses);
-        
-        // Show success message
-        alert('住所を削除しました。');
-      } catch (error) {
-        alert(`住所の削除に失敗しました: ${error.message}`);
-      }
-    },
-
-    /**
-     * Set default address
-     * @param {string} addressId - Address ID
-     */
-    async setDefaultAddress(addressId) {
-      if (!AuthService.currentUser) return;
-      
-      try {
-        const address = AuthService.currentUser.addresses.find(addr => addr._id === addressId);
-        
-        if (!address) return;
-        
-        const response = await API.user.updateAddress(AuthService.currentUser.id, addressId, {
-          ...address,
-          isDefault: true
-        });
-        
-        // Update addresses in current user
-        AuthService.currentUser.addresses = response.addresses;
-        
-        // Update addresses list
-        this.loadAddresses(AuthService.currentUser.addresses);
-        
-        // Show success message
-        alert('デフォルトの住所を設定しました。');
-      } catch (error) {
-        alert(`デフォルト住所の設定に失敗しました: ${error.message}`);
       }
     }
   };
@@ -928,7 +587,7 @@
   };
 
   /**
-   * Main Auth Module
+   * Auth Module
    * Combines service, UI, and utilities into a single interface
    */
   const Auth = {
@@ -936,13 +595,6 @@
      * Flag to track initialization
      */
     _initialized: false,
-
-    /**
-     * Current user data (for backward compatibility)
-     */
-    get currentUser() {
-      return AuthService.currentUser;
-    },
 
     /**
      * Initialize authentication
@@ -996,14 +648,6 @@
      */
     showRegisterModal() {
       AuthUI.showRegisterModal();
-    },
-
-    /**
-     * Show address modal for adding or editing an address
-     * @param {Object} address - Address data for editing, null for adding
-     */
-    showAddressModal(address = null) {
-      AuthUI.showAddressModal(address);
     },
 
     /**
@@ -1121,7 +765,7 @@
 
   // Initialize Auth module when DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing Auth module from auth.js');
+    console.log('Initializing Auth module from auth-module.js');
     Auth.init().catch(err => console.error('Error initializing Auth module:', err));
   });
 
