@@ -13,12 +13,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/multiple-shipping.css" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/admin.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/google-logout.css" media="print" onload="this.media='all'">
   
   <!-- Fallback for browsers that don't support onload -->
   <noscript>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="css/multiple-shipping.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/google-logout.css">
   </noscript>
 </head>
 <body>
@@ -353,8 +355,9 @@
   <!-- Load API first -->
   <script src="js/api.js"></script>
   
-  <!-- Authentication fix script - MUST BE LOADED BEFORE auth.js -->
+  <!-- Authentication fix scripts - MUST BE LOADED BEFORE auth.js -->
   <script src="js/login-fix-improved.js"></script>
+  <script src="js/auth-fix.js"></script>
   
   <!-- Load the auth module -->
   <script src="js/auth.js"></script>

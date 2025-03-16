@@ -71,7 +71,8 @@ router.post('/login', (req, res, next) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
+          googleId: user.googleId // Include googleId to identify Google users
         }
       });
     });
@@ -82,10 +83,71 @@ router.post('/login', (req, res, next) => {
 // @desc    Logout user
 // @access  Private
 router.get('/logout', (req, res, next) => {
-  req.logout(function(err) {
-    if (err) { return next(err); }
-    res.json({ message: 'Logged out successfully' });
+  // Store if the user was logged in with Google before logging out
+  const isGoogleUser = req.user && req.user.googleId;
+  
+  // Force logout by destroying the session first
+  req.session.destroy(function(sessionErr) {
+    if (sessionErr) {
+      console.error('Error destroying session:', sessionErr);
+    }
+    
+    // Clear all cookies
+    res.clearCookie('connect.sid', { path: '/' });
+    
+    // Additional cookie clearing with more options
+    res.clearCookie('connect.sid', { 
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+    
+    // Call req.logout after session is destroyed
+    req.logout(function(logoutErr) {
+      if (logoutErr) { 
+        console.error('Error during logout:', logoutErr);
+      }
+      
+      // Send response
+      res.json({ 
+        message: 'Logged out successfully',
+        isGoogleUser: isGoogleUser,
+        timestamp: new Date().getTime() // Add timestamp to prevent caching
+      });
+    });
   });
+});
+
+// @route   GET /api/users/google-logout
+// @desc    Logout from Google and redirect to home
+// @access  Public
+router.get('/google-logout', (req, res) => {
+  // Log the user out of our application first
+  if (req.isAuthenticated()) {
+    req.logout(function(err) {
+      if (err) { 
+        console.error('Error during logout:', err);
+      }
+      
+      // Clear session
+      req.session.destroy(function(err) {
+        if (err) {
+          console.error('Error destroying session:', err);
+        }
+        
+        // Clear cookies
+        res.clearCookie('connect.sid');
+        
+        // Instead of redirecting to Google's logout URL, which might cause issues,
+        // just redirect back to the home page with a clear indication that the user should be logged out
+        res.redirect('/?logout=true&t=' + new Date().getTime());
+      });
+    });
+  } else {
+    // If not authenticated, just redirect to home
+    res.redirect('/?logout=true&t=' + new Date().getTime());
+  }
 });
 
 // @route   GET /api/users/current
@@ -97,7 +159,8 @@ router.get('/current', ensureAuthenticated, (req, res) => {
     name: req.user.name,
     email: req.user.email,
     role: req.user.role,
-    addresses: req.user.addresses
+    addresses: req.user.addresses,
+    googleId: req.user.googleId // Include googleId to identify Google users
   });
 });
 
@@ -112,7 +175,8 @@ router.get('/debug', (req, res) => {
       id: req.user._id,
       name: req.user.name,
       email: req.user.email,
-      role: req.user.role
+      role: req.user.role,
+      googleId: req.user.googleId // Include googleId for debugging
     } : null
   });
 });

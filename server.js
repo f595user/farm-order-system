@@ -16,8 +16,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files with caching
-app.use(express.static(path.join(__dirname, 'public'), {
+// Serve React build files first (for SPA)
+app.use(express.static(path.join(__dirname, 'dist'), {
   maxAge: '1d', // Cache static assets for 1 day
+  etag: true,
+  lastModified: true
+}));
+
+// Then serve legacy public files (for backward compatibility)
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d',
   etag: true,
   lastModified: true
 }));
@@ -80,18 +88,6 @@ mongoose.connection.on('reconnected', () => {
 });
 
 // Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Admin routes - serve the SPA for all admin routes
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/admin/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // API routes
 app.use('/api/products', require('./routes/products'));
@@ -103,7 +99,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.get('*', (req, res) => {
   // Exclude API routes
   if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   } else {
     res.status(404).json({ message: 'API endpoint not found' });
   }

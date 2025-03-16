@@ -24,8 +24,36 @@
      */
     async getCurrentUser() {
       try {
+        // Check URL for logout parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasLogout = urlParams.get('logout');
+        
+        // If logout parameter is present, don't even try to fetch the user
+        if (hasLogout) {
+          console.log('Logout parameter detected in URL, skipping user fetch');
+          this.currentUser = null;
+          return null;
+        }
+        
         console.log('Fetching current user from session');
-        const userData = await API.auth.getCurrentUser();
+        
+        // Use direct fetch with cache-busting instead of API.auth.getCurrentUser()
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/users/current?t=${timestamp}`, {
+          credentials: 'include',
+          cache: 'no-store' // Prevent caching
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.log('User is not authenticated, returning null');
+            this.currentUser = null;
+            return null;
+          }
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const userData = await response.json();
         console.log('Current user data received:', userData ? 'User authenticated' : 'No user data');
         this.currentUser = userData;
         return userData;
@@ -87,11 +115,73 @@
      */
     async logout() {
       try {
-        await API.auth.logout();
+        // Reset user state immediately
         this.currentUser = null;
+        
+        // Clear any auth-related data from localStorage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('googleUser');
+        localStorage.removeItem('session');
+        
+        // クライアント側のクッキーをクリア - より徹底的に
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i];
+          const eqPos = cookie.indexOf('=');
+          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+        }
+        
+        // Call the logout API with timeout handling
+        try {
+          // Create a timeout promise that rejects after 3 seconds
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => {
+              reject(new Error('Logout API request timed out'));
+            }, 3000);
+          });
+          
+          // キャッシュを防ぐためにタイムスタンプを追加
+          const timestamp = new Date().getTime();
+          
+          // Race between the API call and the timeout
+          await Promise.race([
+            fetch(`/api/users/logout?t=${timestamp}`, {
+              credentials: 'include',
+              cache: 'no-store' // キャッシュを使用しない
+            }),
+            timeoutPromise
+          ]);
+          
+          console.log('Server-side logout completed successfully');
+        } catch (apiError) {
+          console.warn('Logout API error or timeout:', apiError.message);
+          console.log('Continuing with client-side logout only');
+        }
+        
         return { success: true };
       } catch (error) {
         console.error('Logout error:', error);
+        
+        // Even on error, ensure client-side data is cleared
+        this.currentUser = null;
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('googleUser');
+        localStorage.removeItem('session');
+        
+        // クライアント側のクッキーをクリア - より徹底的に (エラー時も)
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i];
+          const eqPos = cookie.indexOf('=');
+          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+        }
+        
         throw error;
       }
     },
