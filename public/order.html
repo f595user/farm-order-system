@@ -31,6 +31,7 @@
           <li><a href="/">商品一覧</a></li>
           <li><a href="/order.html" class="active">注文</a></li>
           <li><a href="/">アカウント</a></li>
+          <li class="admin-link hidden"><a href="/" data-tab="admin">管理者</a></li>
         </ul>
       </nav>
       <div class="user-actions">
@@ -116,6 +117,35 @@
               <button id="back-to-products-btn" class="btn">商品一覧に戻る</button>
               <button id="confirm-order-btn" class="btn btn-primary">注文を確定する</button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Tab -->
+      <section id="admin" class="tab-content">
+        <h2>管理者ダッシュボード</h2>
+        <div class="admin-tabs">
+          <button class="admin-tab-btn active" data-admin-tab="dashboard">ダッシュボード</button>
+          <button class="admin-tab-btn" data-admin-tab="orders">注文管理</button>
+          <button class="admin-tab-btn" data-admin-tab="products">商品管理</button>
+          <button class="admin-tab-btn" data-admin-tab="users">ユーザー管理</button>
+          <button class="admin-tab-btn" data-admin-tab="reports">レポート</button>
+        </div>
+        <div class="admin-tab-content">
+          <div id="admin-dashboard" class="admin-tab-panel active">
+            <!-- Dashboard content will be loaded here dynamically -->
+          </div>
+          <div id="admin-orders" class="admin-tab-panel">
+            <!-- Orders management content will be loaded here dynamically -->
+          </div>
+          <div id="admin-products" class="admin-tab-panel">
+            <!-- Products management content will be loaded here dynamically -->
+          </div>
+          <div id="admin-users" class="admin-tab-panel">
+            <!-- Users management content will be loaded here dynamically -->
+          </div>
+          <div id="admin-reports" class="admin-tab-panel">
+            <!-- Reports content will be loaded here dynamically -->
           </div>
         </div>
       </section>
@@ -222,8 +252,9 @@
   <!-- Core scripts needed for initial page load -->
   <script src="js/api.js"></script>
   
-  <!-- Authentication fix script - MUST BE LOADED BEFORE auth.js -->
+  <!-- Authentication fix scripts - MUST BE LOADED BEFORE auth.js -->
   <script src="js/login-fix-improved.js"></script>
+  <script src="js/auth-fix.js"></script>
   
   <!-- Load the auth module -->
   <script src="js/auth.js"></script>
