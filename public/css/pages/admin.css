@@ -1,18 +1,30 @@
-/**
- * Admin Panel Styles
- */
+/*------------------------------------ 
+  Admin Page Styles
+------------------------------------*/
 
 /* Admin panel layout */
+.admin-section {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.admin-section h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.admin-section h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
 .admin-tab-content {
   margin-top: 20px;
-}
-
-.admin-tab-panel {
-  display: none;
-}
-
-.admin-tab-panel.active {
-  display: block;
 }
 
 /* Admin actions */
@@ -30,6 +42,11 @@
 
 .admin-actions-right {
   text-align: right;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 5px;
 }
 
 /* Admin filters */
@@ -57,34 +74,6 @@
 
 .filter-group input[type="text"] {
   min-width: 200px;
-}
-
-/* Admin tables */
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-.admin-table th,
-.admin-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.admin-table th {
-  background-color: #f5f5f5;
-  font-weight: bold;
-}
-
-.admin-table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.admin-table .admin-actions {
-  display: flex;
-  gap: 5px;
 }
 
 /* Stock display */
@@ -199,82 +188,6 @@ input:checked + .slider:before {
   display: flex;
   gap: 10px;
   align-items: center;
-}
-
-/* Modal styles */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-  background-color: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  border-radius: 5px;
-  max-width: 600px;
-  position: relative;
-}
-
-.close {
-  position: absolute;
-  right: 20px;
-  top: 10px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Form styles */
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.form-group textarea {
-  min-height: 100px;
-}
-
-.form-group.checkbox {
-  display: flex;
-  align-items: center;
-}
-
-.form-group.checkbox input {
-  width: auto;
-  margin-right: 10px;
-}
-
-.form-group.checkbox label {
-  margin-bottom: 0;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
 }
 
 /* Product info in modals */
@@ -448,4 +361,107 @@ input:checked + .slider:before {
 .report-table th {
   background-color: #f5f5f5;
   font-weight: bold;
+}
+
+/* Order details in modal */
+.order-details-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.order-details-section {
+  margin-bottom: 20px;
+}
+
+.order-details-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.order-details-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.order-details-total {
+  margin-top: 20px;
+}
+
+.order-details-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.order-details-total-row.total {
+  font-weight: bold;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.order-details-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Update shipping form */
+.update-shipping-form {
+  margin-top: 20px;
+}
+
+.order-info {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+
+.order-id,
+.order-customer,
+.order-date {
+  margin-bottom: 5px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .admin-actions-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .admin-actions-left,
+  .admin-actions-right {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .admin-filters {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .report-summary {
+    flex-direction: column;
+  }
 }

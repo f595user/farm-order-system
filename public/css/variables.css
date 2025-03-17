@@ -1,0 +1,32 @@
+/*------------------------------------ 
+  CSS Variables
+------------------------------------*/
+
+:root {
+  /* Colors */
+  --primary-color: #4caf50;
+  --primary-dark: #388e3c;
+  --primary-light: #a5d6a7;
+  --secondary-color: #ff9800;
+  --secondary-dark: #f57c00;
+  --secondary-light: #ffe0b2;
+  --text-color: #333;
+  --text-light: #666;
+  --background-color: #f9f9f9;
+  --white: #fff;
+  --gray-light: #f1f1f1;
+  --gray: #ddd;
+  --gray-dark: #999;
+  --error-color: #f44336;
+  --success-color: #4caf50;
+  
+  /* Sizes */
+  --border-radius: 4px;
+  
+  /* Effects */
+  --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  
+  /* Brand Colors */
+  --google-color: #4285F4;
+  --google-color-hover: #357ae8;
+}

@@ -1,0 +1,153 @@
+/*------------------------------------ 
+  Home Page Styles
+------------------------------------*/
+
+/* Hero Section */
+.hero {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../../images/アスパラ.jpeg');
+  background-size: cover;
+  background-position: center;
+  color: var(--white);
+  padding: 100px 0;
+  margin-bottom: 40px;
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+/* Featured Categories Section */
+.featured-categories,
+.featured-products {
+  margin-bottom: 40px;
+}
+
+.featured-categories h3,
+.featured-products h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Product Info */
+.product-info {
+  padding: 15px;
+}
+
+.product-name {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.product-unit {
+  font-size: 14px;
+  color: var(--text-light);
+  font-weight: normal;
+}
+
+.product-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.product-stock {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+.product-shipping-estimate {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 15px;
+}
+
+.product-shipping-estimate i {
+  color: var(--primary-color);
+  margin-right: 5px;
+}
+
+.product-status {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: var(--gray-light);
+  border-radius: 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.product-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* View All Products Link */
+.view-all-products {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.view-all-products .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Loading and Error States */
+.loading, 
+.error {
+  padding: 30px;
+  text-align: center;
+  margin: 20px 0;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.error {
+  color: var(--error-color);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .hero {
+    padding: 60px 0;
+  }
+
+  .hero h2 {
+    font-size: 28px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+  
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero h2 {
+    font-size: 24px;
+  }
+  
+  .featured-categories h3,
+  .featured-products h3 {
+    font-size: 20px;
+  }
+}

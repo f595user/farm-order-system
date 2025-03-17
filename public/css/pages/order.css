@@ -1,4 +1,6 @@
-/* Order Page Styles */
+/*------------------------------------ 
+  Order Page Styles
+------------------------------------*/
 
 /* Main layout */
 .order-container {
@@ -60,10 +62,6 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 0;
 }
 
 .name-group {
@@ -278,7 +276,8 @@
 }
 
 /* Loading states */
-.loading-products, .summary-loading {
+.loading-products, 
+.summary-loading {
   padding: 20px;
   text-align: center;
   color: #666;

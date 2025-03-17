@@ -1,3 +1,48 @@
+/*------------------------------------ 
+  Authentication Pages Styles
+------------------------------------*/
+
+/* Auth Container */
+.auth-container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.auth-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Auth Form */
+.auth-form {
+  margin-bottom: 20px;
+}
+
+.auth-form .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.auth-form .btn {
+  width: 100%;
+}
+
+/* Form Switch */
+.form-switch {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.form-switch p {
+  margin-bottom: 10px;
+  color: var(--text-light);
+}
+
+/* Google Logout */
 .google-logout-container {
   display: flex;
   flex-direction: column;
@@ -27,12 +72,6 @@
   margin-bottom: 30px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .google-logout-container p {
   margin: 10px 0;
   font-size: 18px;
@@ -59,4 +98,19 @@
 
 .google-logout-container button:hover {
   background-color: #0069d9;
+}
+
+/* Loading Timeout Message */
+.loading-timeout-message {
+  margin-top: 20px;
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+/* Responsive Styles */
+@media (max-width: 576px) {
+  .auth-container {
+    margin: 20px;
+    padding: 20px;
+  }
 }
