@@ -472,30 +472,14 @@ const Order = () => {
                   destination={destination}
                   onAddressChange={handleAddressChange}
                   onRemoveDestination={handleRemoveDestination}
+                  products={products}
+                  categoryVisibility={categoryVisibility}
+                  onToggleCategory={(category) => setCategoryVisibility(prev => ({
+                    ...prev, 
+                    [category]: !prev[category]
+                  }))}
+                  onQuantityChange={handleQuantityChange}
                 />
-                
-                <div className="destination-products">
-                  <h4>商品選択</h4>
-                  <div className="product-selection-container">
-                    {/* Group products by category */}
-                    {products.length > 0 && 
-                      [...new Set(products.map(product => product.category))].map(category => (
-                        <ProductCategory
-                          key={category}
-                          category={category}
-                          products={products}
-                          isVisible={categoryVisibility[category]}
-                          onToggleVisibility={() => setCategoryVisibility(prev => ({
-                            ...prev, 
-                            [category]: !prev[category]
-                          }))}
-                          destination={destination}
-                          onQuantityChange={handleQuantityChange}
-                        />
-                      ))
-                    }
-                  </div>
-                </div>
               </div>
             ))}
           </div>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配送フォームテスト</title>
+  <style>
+    body {
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    /* 配送先フォーム */
+    .shipping-destination {
+      margin-bottom: 30px; /* お届け先の間の余白を増やす */
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+    }
+    
+    /* 最後のお届け先の下の余白は不要 */
+    .shipping-destination:last-child {
+      margin-bottom: 20px;
+    }
+    
+    .destination-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .destination-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      position: relative;
+      padding-left: 5px;
+    }
+    
+    .destination-title::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background-color: #4CAF50;
+      border-radius: 2px;
+    }
+    
+    /* 配送先フォーム */
+    .delivery-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      row-gap: 0.5rem; /* 行間を詰める */
+    }
+    
+    @media (min-width: 768px) {
+      .delivery-form {
+        grid-template-columns: 1fr 1fr;
+        column-gap: 0.5rem;
+      }
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.25rem; /* 行間を詰める */
+    }
+    
+    .form-group label {
+      margin-bottom: 3px; /* ラベルと入力欄の間隔を縮める */
+      font-weight: 500;
+    }
+    
+    .form-group input {
+      padding: 6px 10px; /* 入力欄の内部余白を縮める */
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    /* 名前欄は常に1行全体を使用 */
+    .name-group {
+      grid-column: 1 / -1;
+    }
+    
+    .name-input-container {
+      display: flex;
+      align-items: center;
+    }
+    
+    .name-input-container input {
+      flex: 1;
+    }
+    
+    .name-suffix {
+      margin-left: 10px;
+    }
+    
+    /* 都道府県と住所を横並びにする */
+    .address-line {
+      display: flex;
+      gap: 0.5rem; /* 都道府県と住所の間隔 */
+      grid-column: 1 / -1; /* 1行全体を使用 */
+    }
+    
+    .prefecture-group {
+      flex: 0.2; /* 都道府県は幅を小さめに */
+    }
+    
+    .address-group {
+      flex: 0.8; /* 住所は幅を大きめに */
+    }
+    
+    /* 商品選択欄 */
+    .destination-products {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px dashed #e0e0e0;
+    }
+    
+    .product-selection-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
+      position: relative;
+      padding-left: 5px;
+    }
+    
+    .product-selection-title::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background-color: #4CAF50;
+      border-radius: 2px;
+      opacity: 0.7;
+    }
+    
+    .product-selection-container {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    
+    /* カテゴリスタイル */
+    .product-category {
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .product-category:last-child {
+      border-bottom: none;
+    }
+    
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background-color: #f5f5f5;
+      cursor: pointer;
+    }
+    
+    .category-header h5 {
+      margin: 0;
+      font-size: 16px;
+    }
+    
+    .category-toggle {
+      font-size: 14px;
+    }
+    
+    .category-products {
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    
+    .category-products.visible {
+      max-height: 1000px;
+      padding: 10px 0;
+    }
+    
+    .category-products.hidden {
+      max-height: 0;
+    }
+    
+    .product-selection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .product-selection-item:last-child {
+      border-bottom: none;
+    }
+    
+    .product-selection-info {
+      flex: 1;
+    }
+    
+    .product-selection-name {
+      font-size: 14px;
+    }
+    
+    .product-unit {
+      color: #666;
+      font-size: 12px;
+    }
+    
+    .product-selection-quantity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .product-selection-price {
+      font-weight: 500;
+      min-width: 80px;
+      text-align: right;
+    }
+    
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+    }
+    
+    .quantity-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ccc;
+      background-color: #f5f5f5;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .decrease-btn {
+      border-radius: 4px 0 0 4px;
+    }
+    
+    .increase-btn {
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .quantity-input {
+      width: 40px;
+      height: 30px;
+      border: 1px solid #ccc;
+      border-left: none;
+      border-right: none;
+      text-align: center;
+      padding: 0;
+    }
+    
+    .remove-destination-btn {
+      background-color: transparent;
+      border: none;
+      color: #ff4d4d;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>配送フォームテスト</h1>
+    
+    <!-- お届け先 #1 -->
+    <div class="shipping-destination" data-destination-id="1">
+      <div class="destination-header">
+        <h4 class="destination-title">お届け先 #1</h4>
+      </div>
+      
+      <div class="delivery-form">
+        <!-- 1行目: お名前 -->
+        <div class="form-group name-group">
+          <label for="name-1">お名前</label>
+          <div class="name-input-container">
+            <input 
+              type="text" 
+              id="name-1" 
+              name="name-1"
+              value="山田太郎"
+              required 
+            />
+            <span class="name-suffix">様</span>
+          </div>
+        </div>
+        
+        <!-- 2行目: 郵便番号 -->
+        <div class="form-group">
+          <label for="postal-1">郵便番号</label>
+          <input 
+            type="text" 
+            id="postal-1" 
+            name="postal-1"
+            value="123-4567"
+            placeholder="例: 123-4567"
+            maxlength="8"
+            required 
+          />
+        </div>
+        
+        <!-- 3行目: 都道府県、住所 -->
+        <div class="address-line">
+          <div class="form-group prefecture-group">
+            <label for="city-1">都道府県</label>
+            <input 
+              type="text" 
+              id="city-1" 
+              name="city-1"
+              value="東京都"
+              required 
+            />
+          </div>
+          
+          <div class="form-group address-group">
+            <label for="address-1">住所</label>
+            <input 
+              type="text" 
+              id="address-1" 
+              name="address-1"
+              value="新宿区新宿1-1-1"
+              required 
+            />
+          </div>
+        </div>
+        
+        <!-- 4行目: 電話番号 -->
+        <div class="form-group">
+          <label for="phone-1">電話番号</label>
+          <input 
+            type="tel" 
+            id="phone-1" 
+            name="phone-1"
+            value="09012345678"
+            placeholder="例: 09012345678"
+            maxlength="11"
+            required 
+          />
+        </div>
+      </div>
+      
+      <!-- 商品選択欄 -->
+      <div class="destination-products">
+        <h4 class="product-selection-title">商品選択</h4>
+        <div class="product-selection-container">
+          <!-- 野菜カテゴリ -->
+          <div class="product-category">
+            <div class="category-header">
+              <h5>野菜</h5>
+              <span class="category-toggle">▶</span>
+            </div>
+            <div class="category-products hidden">
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    アスパラガス <span class="product-unit">(1束)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥350</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    にんじん <span class="product-unit">(3本)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥280</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 果物カテゴリ -->
+          <div class="product-category">
+            <div class="category-header">
+              <h5>果物</h5>
+              <span class="category-toggle">▶</span>
+            </div>
+            <div class="category-products hidden">
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    りんご <span class="product-unit">(5個)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥780</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    みかん <span class="product-unit">(1kg)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥580</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- お届け先 #2 -->
+    <div class="shipping-destination" data-destination-id="2">
+      <div class="destination-header">
+        <h4 class="destination-title">お届け先 #2</h4>
+        <button type="button" class="remove-destination-btn">
+          <i class="fas fa-times"></i> 削除
+        </button>
+      </div>
+      
+      <div class="delivery-form">
+        <!-- 1行目: お名前 -->
+        <div class="form-group name-group">
+          <label for="name-2">お名前</label>
+          <div class="name-input-container">
+            <input 
+              type="text" 
+              id="name-2" 
+              name="name-2"
+              value="佐藤花子"
+              required 
+            />
+            <span class="name-suffix">様</span>
+          </div>
+        </div>
+        
+        <!-- 2行目: 郵便番号 -->
+        <div class="form-group">
+          <label for="postal-2">郵便番号</label>
+          <input 
+            type="text" 
+            id="postal-2" 
+            name="postal-2"
+            value="234-5678"
+            placeholder="例: 123-4567"
+            maxlength="8"
+            required 
+          />
+        </div>
+        
+        <!-- 3行目: 都道府県、住所 -->
+        <div class="address-line">
+          <div class="form-group prefecture-group">
+            <label for="city-2">都道府県</label>
+            <input 
+              type="text" 
+              id="city-2" 
+              name="city-2"
+              value="大阪府"
+              required 
+            />
+          </div>
+          
+          <div class="form-group address-group">
+            <label for="address-2">住所</label>
+            <input 
+              type="text" 
+              id="address-2" 
+              name="address-2"
+              value="大阪市中央区1-2-3"
+              required 
+            />
+          </div>
+        </div>
+        
+        <!-- 4行目: 電話番号 -->
+        <div class="form-group">
+          <label for="phone-2">電話番号</label>
+          <input 
+            type="tel" 
+            id="phone-2" 
+            name="phone-2"
+            value="08012345678"
+            placeholder="例: 09012345678"
+            maxlength="11"
+            required 
+          />
+        </div>
+      </div>
+      
+      <!-- 商品選択欄 -->
+      <div class="destination-products">
+        <h4 class="product-selection-title">商品選択</h4>
+        <div class="product-selection-container">
+          <!-- 野菜カテゴリ -->
+          <div class="product-category">
+            <div class="category-header">
+              <h5>野菜</h5>
+              <span class="category-toggle">▶</span>
+            </div>
+            <div class="category-products hidden">
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    アスパラガス <span class="product-unit">(1束)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥350</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    にんじん <span class="product-unit">(3本)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥280</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 果物カテゴリ -->
+          <div class="product-category">
+            <div class="category-header">
+              <h5>果物</h5>
+              <span class="category-toggle">▶</span>
+            </div>
+            <div class="category-products hidden">
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    りんご <span class="product-unit">(5個)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥780</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="product-selection-item">
+                <div class="product-selection-info">
+                  <div class="product-selection-name">
+                    みかん <span class="product-unit">(1kg)</span>
+                  </div>
+                </div>
+                <div class="product-selection-quantity">
+                  <div class="product-selection-price">¥580</div>
+                  <div class="quantity-selector">
+                    <button type="button" class="quantity-btn decrease-btn">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="10" />
+                    <button type="button" class="quantity-btn increase-btn">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全角→半角変換関数
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+    }
+
+    // 郵便番号の処理
+    document.getElementById('postal-1').addEventListener('input', function(e) {
+      let value = e.target.value;
+      
+      // 全角→半角変換
+      value = toHalfWidth(value);
+      
+      // 数字とハイフン以外を除去
+      value = value.replace(/[^0-9-]/g, '');
+      
+      // 3桁後にハイフンがない場合は自動挿入
+      if (value.length > 3 && !value.includes('-')) {
+        value = value.slice(0, 3) + '-' + value.slice(3);
+      }
+      
+      // 最大8文字 (例: 123-4567) で制限
+      if (value.length > 8) {
+        value = value.slice(0, 8);
+      }
+      
+      e.target.value = value;
+    });
+
+    // 電話番号の処理
+    document.getElementById('phone-1').addEventListener('input', function(e) {
+      let value = e.target.value;
+      
+      // 全角→半角変換
+      value = toHalfWidth(value);
+      
+      // 数字以外を除去
+      value = value.replace(/[^0-9]/g, '');
+      
+      // 最大11桁で制限
+      if (value.length > 11) {
+        value = value.slice(0, 11);
+      }
+      
+      e.target.value = value;
+    });
+    
+    // カテゴリの開閉処理
+    document.querySelectorAll('.category-header').forEach(header => {
+      header.addEventListener('click', function() {
+        const categoryProducts = this.nextElementSibling;
+        const toggleIcon = this.querySelector('.category-toggle');
+        
+        if (categoryProducts.classList.contains('hidden')) {
+          categoryProducts.classList.remove('hidden');
+          categoryProducts.classList.add('visible');
+          toggleIcon.textContent = '▼';
+        } else {
+          categoryProducts.classList.remove('visible');
+          categoryProducts.classList.add('hidden');
+          toggleIcon.textContent = '▶';
+        }
+      });
+    });
+    
+    // 数量ボタンの処理
+    document.querySelectorAll('.decrease-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const input = this.nextElementSibling;
+        let value = parseInt(input.value) || 0;
+        if (value > 0) {
+          input.value = value - 1;
+        }
+      });
+    });
+    
+    document.querySelectorAll('.increase-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        let value = parseInt(input.value) || 0;
+        const max = parseInt(input.getAttribute('max')) || 10;
+        if (value < max) {
+          input.value = value + 1;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

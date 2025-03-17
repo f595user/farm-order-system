@@ -32,10 +32,16 @@
 }
 
 .shipping-destination {
-  margin-bottom: 20px;
+  margin-bottom: 30px; /* お届け先の間の余白を増やす */
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 最後のお届け先の下の余白は不要 */
+.shipping-destination:last-child {
+  margin-bottom: 20px;
 }
 
 .destination-header {
@@ -43,10 +49,28 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
-.destination-header h4 {
+.destination-title {
   margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  position: relative;
+  padding-left: 5px;
+}
+
+.destination-title::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: var(--primary-color, #4CAF50);
+  border-radius: 2px;
 }
 
 .remove-destination-btn {
@@ -61,34 +85,38 @@
   text-decoration: underline;
 }
 
-.destination-form {
+/* 配送先フォーム */
+.delivery-form {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 15px;
+  row-gap: 0.5rem; /* 行間を詰める */
 }
 
 @media (min-width: 768px) {
-  .destination-form {
+  .delivery-form {
     grid-template-columns: 1fr 1fr;
+    column-gap: 0.5rem;
   }
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  margin-bottom: 0.25rem; /* 行間を詰める */
 }
 
 .form-group label {
-  margin-bottom: 5px;
+  margin-bottom: 3px; /* ラベルと入力欄の間隔を縮める */
   font-weight: 500;
 }
 
 .form-group input {
-  padding: 8px 12px;
+  padding: 6px 10px; /* 入力欄の内部余白を縮める */
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
+/* 名前欄は常に1行全体を使用 */
 .name-group {
   grid-column: 1 / -1;
 }
@@ -106,15 +134,54 @@
   margin-left: 10px;
 }
 
+/* 都道府県と住所を横並びにする */
+.address-line {
+  display: flex;
+  gap: 0.5rem; /* 都道府県と住所の間隔 */
+  grid-column: 1 / -1; /* 1行全体を使用 */
+}
+
+.prefecture-group {
+  flex: 0.2; /* 都道府県は幅を小さめに */
+}
+
+.address-group {
+  flex: 0.8; /* 住所は幅を大きめに */
+}
+
 /* Product Selection */
 .destination-products {
-  margin-top: 20px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.product-selection-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+  position: relative;
+  padding-left: 5px;
+}
+
+.product-selection-title::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background-color: var(--primary-color, #4CAF50);
+  border-radius: 2px;
+  opacity: 0.7;
 }
 
 .product-selection-container {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   overflow: hidden;
+  margin-bottom: 10px;
 }
 
 /* Category Styles */
