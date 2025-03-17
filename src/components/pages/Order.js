@@ -3,6 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../utils/api';
 
+// Import components
+import ProductCategory from '../order/ProductCategory';
+import OrderSummary from '../order/OrderSummary';
+import PaymentModal from '../order/PaymentModal';
+import ConfirmationModal from '../order/ConfirmationModal';
+import ShippingForm from '../order/ShippingForm';
+
 const Order = () => {
   const { currentUser, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +33,9 @@ const Order = () => {
   const initialProductsRef = useRef(initialProducts);
   const addressPrefilledRef = useRef(false);
   const fetchCompletedRef = useRef(false);
+  
+  // State for category visibility - initialize as hidden (folded)
+  const [categoryVisibility, setCategoryVisibility] = useState({});
   
   // Fetch products only once on component mount
   useEffect(() => {
@@ -56,6 +66,14 @@ const Order = () => {
             address: '',
             products: productQuantities
           }]);
+          
+          // Initialize all categories as hidden (folded)
+          const categories = [...new Set(productList.map(product => product.category))];
+          const initialVisibility = {};
+          categories.forEach(category => {
+            initialVisibility[category] = false;
+          });
+          setCategoryVisibility(initialVisibility);
         } else {
           // Otherwise fetch all available products
           const data = await API.products.getAll({ inStock: true });
@@ -77,6 +95,14 @@ const Order = () => {
             address: '',
             products: productQuantities
           }]);
+          
+          // Initialize all categories as hidden (folded)
+          const categories = [...new Set(data.map(product => product.category))];
+          const initialVisibility = {};
+          categories.forEach(category => {
+            initialVisibility[category] = false;
+          });
+          setCategoryVisibility(initialVisibility);
         }
         
         // Mark fetch as completed to prevent re-fetching
@@ -441,168 +467,33 @@ const Order = () => {
           <h3>お届け先</h3>
           <div id="shipping-destinations-container">
             {destinations.map(destination => (
-              <div 
-                className="shipping-destination" 
-                data-destination-id={destination.id}
-                key={destination.id}
-              >
-                <div className="destination-header">
-                  <h4>お届け先 #{destination.id}</h4>
-                  {destination.id !== 1 && (
-                    <button 
-                      type="button" 
-                      className="remove-destination-btn"
-                      onClick={() => handleRemoveDestination(destination.id)}
-                    >
-                      <i className="fas fa-times"></i> 削除
-                    </button>
-                  )}
-                </div>
-                
-                <div className="destination-form">
-                  <div className="form-group name-group">
-                    <label htmlFor={`name-${destination.id}`}>お名前</label>
-                    <div className="name-input-container">
-                      <input 
-                        type="text" 
-                        id={`name-${destination.id}`} 
-                        name={`name-${destination.id}`}
-                        value={destination.name}
-                        onChange={(e) => handleAddressChange(destination.id, 'name', e.target.value)}
-                        required 
-                      />
-                      <span className="name-suffix">様</span>
-                    </div>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor={`postal-${destination.id}`}>郵便番号</label>
-                    <input 
-                      type="text" 
-                      id={`postal-${destination.id}`} 
-                      name={`postal-${destination.id}`}
-                      value={destination.postalCode}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        handleAddressChange(destination.id, 'postalCode', value);
-                      }}
-                      onBlur={(e) => {
-                        // Only lookup address when the field loses focus
-                        handlePostalLookup(destination.id, e.target.value);
-                      }}
-                      placeholder="例: 123-4567"
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor={`city-${destination.id}`}>都道府県</label>
-                    <input 
-                      type="text" 
-                      id={`city-${destination.id}`} 
-                      name={`city-${destination.id}`}
-                      value={destination.city}
-                      onChange={(e) => handleAddressChange(destination.id, 'city', e.target.value)}
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor={`address-${destination.id}`}>住所</label>
-                    <input 
-                      type="text" 
-                      id={`address-${destination.id}`} 
-                      name={`address-${destination.id}`}
-                      value={destination.address}
-                      onChange={(e) => handleAddressChange(destination.id, 'address', e.target.value)}
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor={`phone-${destination.id}`}>電話番号</label>
-                    <input 
-                      type="tel" 
-                      id={`phone-${destination.id}`} 
-                      name={`phone-${destination.id}`}
-                      value={destination.phone}
-                      onChange={(e) => handleAddressChange(destination.id, 'phone', e.target.value)}
-                      required 
-                    />
-                  </div>
-                </div>
+              <div key={destination.id}>
+                <ShippingForm 
+                  destination={destination}
+                  onAddressChange={handleAddressChange}
+                  onRemoveDestination={handleRemoveDestination}
+                />
                 
                 <div className="destination-products">
                   <h4>商品選択</h4>
                   <div className="product-selection-container">
-                    {products.map(product => (
-                      <div className="product-selection-item" key={product._id}>
-                        <div className="product-selection-info">
-                          <div className="product-selection-name">
-                            {product.name} <span className="product-unit">({product.unit})</span>
-                          </div>
-                          <div className="product-selection-price">
-                            {new Intl.NumberFormat('ja-JP', {
-                              style: 'currency',
-                              currency: 'JPY'
-                            }).format(product.price)}
-                          </div>
-                        </div>
-                        
-                        <div className="product-selection-quantity">
-                          <div className="quantity-selector">
-                            <button 
-                              type="button" 
-                              className="quantity-btn decrease-btn"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const currentQuantity = destination.products[product._id] || 0;
-                                if (currentQuantity > 0) {
-                                  handleQuantityChange(destination.id, product._id, currentQuantity - 1);
-                                }
-                              }}
-                            >
-                              -
-                            </button>
-                            
-                            <input 
-                              type="number" 
-                              className="quantity-input"
-                              value={destination.products[product._id] || 0}
-                              min="0"
-                              max={product.stock}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value);
-                                if (isNaN(value) || value < 0) {
-                                  handleQuantityChange(destination.id, product._id, 0);
-                                } else if (value > product.stock) {
-                                  handleQuantityChange(destination.id, product._id, product.stock);
-                                } else {
-                                  handleQuantityChange(destination.id, product._id, value);
-                                }
-                              }}
-                              onClick={(e) => e.target.select()}
-                            />
-                            
-                            <button 
-                              type="button" 
-                              className="quantity-btn increase-btn"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const currentQuantity = destination.products[product._id] || 0;
-                                if (currentQuantity < product.stock) {
-                                  handleQuantityChange(destination.id, product._id, currentQuantity + 1);
-                                }
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    {/* Group products by category */}
+                    {products.length > 0 && 
+                      [...new Set(products.map(product => product.category))].map(category => (
+                        <ProductCategory
+                          key={category}
+                          category={category}
+                          products={products}
+                          isVisible={categoryVisibility[category]}
+                          onToggleVisibility={() => setCategoryVisibility(prev => ({
+                            ...prev, 
+                            [category]: !prev[category]
+                          }))}
+                          destination={destination}
+                          onQuantityChange={handleQuantityChange}
+                        />
+                      ))
+                    }
                   </div>
                 </div>
               </div>
@@ -621,394 +512,38 @@ const Order = () => {
         </div>
         
         {/* Order Summary */}
-        <div className="order-summary">
-          <h3>注文内容</h3>
-          <div id="order-summary-container">
-            {!totals.hasProducts ? (
-              <p>商品が選択されていません。</p>
-            ) : (
-              <>
-                <div className="summary-item">
-                  <span>商品点数:</span>
-                  <span>{totals.totalItems}点</span>
-                </div>
-                
-                {destinations.map(destination => {
-                  // Check if destination has products
-                  const destinationHasProducts = Object.values(destination.products).some(quantity => quantity > 0);
-                  
-                  if (!destinationHasProducts) {
-                    return null;
-                  }
-                  
-                  return (
-                    <div className="summary-destination" key={destination.id}>
-                      <div className="summary-destination-header">配送先 #{destination.id}</div>
-                      
-                      {destination.name && destination.address ? (
-                        <div className="summary-destination-address">
-                          {destination.name}<br />
-                          {destination.postalCode} {destination.city} {destination.address}<br />
-                          {destination.phone}
-                        </div>
-                      ) : (
-                        <div className="summary-destination-address">住所が入力されていません</div>
-                      )}
-                      
-                      {Object.entries(destination.products).map(([productId, quantity]) => {
-                        if (quantity <= 0) {
-                          return null;
-                        }
-                        
-                        const product = products.find(p => p._id === productId);
-                        if (!product) {
-                          return null;
-                        }
-                        
-                        const productTotal = product.price * quantity;
-                        
-                        return (
-                          <div className="summary-product" key={productId}>
-                            <div className="summary-product-name">{product.name}</div>
-                            <div className="summary-product-quantity">{quantity}{product.unit}</div>
-                            <div className="summary-product-price">
-                              {new Intl.NumberFormat('ja-JP', {
-                                style: 'currency',
-                                currency: 'JPY'
-                              }).format(productTotal)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      
-                      <div className="summary-product">
-                        <div className="summary-product-name">配送料</div>
-                        <div className="summary-product-price">
-                          {new Intl.NumberFormat('ja-JP', {
-                            style: 'currency',
-                            currency: 'JPY'
-                          }).format(totals.shipping)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                <div className="summary-subtotal summary-item">
-                  <span>小計:</span>
-                  <span>
-                    {new Intl.NumberFormat('ja-JP', {
-                      style: 'currency',
-                      currency: 'JPY'
-                    }).format(totals.subtotal)}
-                  </span>
-                </div>
-                
-                <div className="summary-total summary-item">
-                  <span>合計:</span>
-                  <span>
-                    {new Intl.NumberFormat('ja-JP', {
-                      style: 'currency',
-                      currency: 'JPY'
-                    }).format(totals.total)}
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-          
-          <div className="order-actions">
-            <button 
-              id="back-to-products-btn" 
-              className="btn"
-              onClick={() => navigate('/products')}
-            >
-              商品一覧に戻る
-            </button>
-            
-            <button 
-              id="confirm-order-btn" 
-              className="btn btn-primary"
-              onClick={handleConfirmOrder}
-              disabled={!totals.hasProducts || loading}
-            >
-              {loading ? '処理中...' : '注文を確定する'}
-            </button>
-          </div>
-        </div>
+        <OrderSummary 
+          destinations={destinations}
+          products={products}
+          totals={totals}
+          loading={loading}
+          onConfirmOrder={handleConfirmOrder}
+        />
       </div>
       
       {/* Payment Method Selection Modal */}
-      {showPaymentSelection && (
-        <div className="modal" style={{ display: 'block' }}>
-          <div className="modal-content">
-            <span 
-              className="close"
-              onClick={() => setShowPaymentSelection(false)}
-            >
-              &times;
-            </span>
-            
-            <h2>お支払い方法</h2>
-            
-            {/* Step Indicator */}
-            <div className="step-indicator">
-              <div className={`step ${currentStep >= 1 ? 'completed' : ''}`}>
-                <div className="step-circle">1</div>
-                <div className="step-label">カート</div>
-              </div>
-              <div className={`step ${currentStep === 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
-                <div className="step-circle">2</div>
-                <div className="step-label">お支払い</div>
-              </div>
-              <div className={`step ${currentStep === 3 ? 'active' : ''}`}>
-                <div className="step-circle">3</div>
-                <div className="step-label">確認</div>
-              </div>
-            </div>
-            
-            <div id="payment-selection-content">
-              <h3>支払い方法を選択</h3>
-              <div className="payment-options">
-                <div 
-                  className={`payment-option ${selectedPaymentMethod === 'credit_card' ? 'selected' : ''}`} 
-                  data-method="credit_card"
-                  onClick={() => handlePaymentMethodSelect('credit_card')}
-                >
-                  <div className="payment-option-radio">
-                    <input 
-                      type="radio" 
-                      name="payment-method" 
-                      id="payment-credit-card" 
-                      checked={selectedPaymentMethod === 'credit_card'}
-                      onChange={() => handlePaymentMethodSelect('credit_card')}
-                    />
-                    <label htmlFor="payment-credit-card"></label>
-                  </div>
-                  <div className="payment-option-details">
-                    <div className="payment-option-name">クレジットカード</div>
-                    <div className="payment-option-description">
-                      <div className="credit-card-icons">
-                        <i className="fab fa-cc-visa"></i>
-                        <i className="fab fa-cc-mastercard"></i>
-                        <i className="fab fa-cc-amex"></i>
-                        <i className="fab fa-cc-jcb"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div 
-                  className={`payment-option ${selectedPaymentMethod === 'bank_transfer' ? 'selected' : ''}`} 
-                  data-method="bank_transfer"
-                  onClick={() => handlePaymentMethodSelect('bank_transfer')}
-                >
-                  <div className="payment-option-radio">
-                    <input 
-                      type="radio" 
-                      name="payment-method" 
-                      id="payment-bank-transfer"
-                      checked={selectedPaymentMethod === 'bank_transfer'}
-                      onChange={() => handlePaymentMethodSelect('bank_transfer')}
-                    />
-                    <label htmlFor="payment-bank-transfer"></label>
-                  </div>
-                  <div className="payment-option-details">
-                    <div className="payment-option-name">銀行振込</div>
-                    <div className="payment-option-description">
-                      注文確認後、振込先情報をメールでお送りします。
-                    </div>
-                  </div>
-                </div>
-                
-                <div 
-                  className={`payment-option ${selectedPaymentMethod === 'cash_on_delivery' ? 'selected' : ''}`} 
-                  data-method="cash_on_delivery"
-                  onClick={() => handlePaymentMethodSelect('cash_on_delivery')}
-                >
-                  <div className="payment-option-radio">
-                    <input 
-                      type="radio" 
-                      name="payment-method" 
-                      id="payment-cash-on-delivery"
-                      checked={selectedPaymentMethod === 'cash_on_delivery'}
-                      onChange={() => handlePaymentMethodSelect('cash_on_delivery')}
-                    />
-                    <label htmlFor="payment-cash-on-delivery"></label>
-                  </div>
-                  <div className="payment-option-details">
-                    <div className="payment-option-name">代金引換</div>
-                    <div className="payment-option-description">
-                      商品お届け時に配送員に直接お支払いください。
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="checkout-actions">
-                <button 
-                  className="btn" 
-                  id="payment-back-btn"
-                  onClick={handlePaymentBack}
-                >
-                  戻る
-                </button>
-                <button 
-                  className="btn btn-primary" 
-                  id="payment-next-btn"
-                  onClick={handlePaymentConfirm}
-                >
-                  次へ
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <PaymentModal
+        show={showPaymentSelection}
+        currentStep={currentStep}
+        selectedPaymentMethod={selectedPaymentMethod}
+        onClose={() => setShowPaymentSelection(false)}
+        onPaymentMethodSelect={handlePaymentMethodSelect}
+        onPaymentConfirm={handlePaymentConfirm}
+        onPaymentBack={handlePaymentBack}
+      />
       
       {/* Order Confirmation Modal */}
-      {showConfirmation && (
-        <div className="modal" style={{ display: 'block' }}>
-          <div className="modal-content">
-            <span 
-              className="close"
-              onClick={() => setShowConfirmation(false)}
-            >
-              &times;
-            </span>
-            
-            <h2>注文確認</h2>
-            
-            {/* Step Indicator */}
-            <div className="step-indicator">
-              <div className={`step ${currentStep >= 1 ? 'completed' : ''}`}>
-                <div className="step-circle">1</div>
-                <div className="step-label">カート</div>
-              </div>
-              <div className={`step ${currentStep >= 2 ? 'completed' : ''}`}>
-                <div className="step-circle">2</div>
-                <div className="step-label">お支払い</div>
-              </div>
-              <div className={`step ${currentStep === 3 ? 'active' : ''}`}>
-                <div className="step-circle">3</div>
-                <div className="step-label">確認</div>
-              </div>
-            </div>
-            
-            <div id="order-confirmation-content">
-              <h3>注文内容の確認</h3>
-              
-              {destinations.map(destination => {
-                // Check if destination has products
-                const destinationHasProducts = Object.values(destination.products).some(quantity => quantity > 0);
-                
-                if (!destinationHasProducts) {
-                  return null;
-                }
-                
-                return (
-                  <div className="summary-destination" key={destination.id}>
-                    <div className="summary-destination-header">配送先 #{destination.id}</div>
-                    
-                    <div className="summary-destination-address">
-                      {destination.name}<br />
-                      {destination.postalCode} {destination.city} {destination.address}<br />
-                      {destination.phone}
-                    </div>
-                    
-                    {Object.entries(destination.products).map(([productId, quantity]) => {
-                      if (quantity <= 0) {
-                        return null;
-                      }
-                      
-                      const product = products.find(p => p._id === productId);
-                      if (!product) {
-                        return null;
-                      }
-                      
-                      const productTotal = product.price * quantity;
-                      
-                      return (
-                        <div className="summary-product" key={productId}>
-                          <div className="summary-product-name">{product.name}</div>
-                          <div className="summary-product-quantity">{quantity}{product.unit}</div>
-                          <div className="summary-product-price">
-                            {new Intl.NumberFormat('ja-JP', {
-                              style: 'currency',
-                              currency: 'JPY'
-                            }).format(productTotal)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    <div className="summary-product">
-                      <div className="summary-product-name">配送料</div>
-                      <div className="summary-product-price">
-                        {new Intl.NumberFormat('ja-JP', {
-                          style: 'currency',
-                          currency: 'JPY'
-                        }).format(totals.shipping)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              
-              <div className="summary-subtotal summary-item">
-                <span>小計:</span>
-                <span>
-                  {new Intl.NumberFormat('ja-JP', {
-                    style: 'currency',
-                    currency: 'JPY'
-                  }).format(totals.subtotal)}
-                </span>
-              </div>
-              
-              <div className="summary-total summary-item">
-                <span>合計:</span>
-                <span>
-                  {new Intl.NumberFormat('ja-JP', {
-                    style: 'currency',
-                    currency: 'JPY'
-                  }).format(totals.total)}
-                </span>
-              </div>
-            </div>
-            
-            <div className="confirmation-actions">
-              <div className="confirmation-actions-left">
-                <button 
-                  id="back-to-payment-btn" 
-                  className="btn"
-                  onClick={handleConfirmationBack}
-                >
-                  戻る
-                </button>
-              </div>
-              
-              <div className="confirmation-actions-right">
-                <button 
-                  id="edit-order-btn" 
-                  className="btn"
-                  onClick={() => setShowConfirmation(false)}
-                >
-                  注文を編集する
-                </button>
-                
-                <button 
-                  id="place-order-btn" 
-                  className="btn btn-primary"
-                  onClick={handlePlaceOrder}
-                  disabled={loading}
-                >
-                  {loading ? '処理中...' : '注文を確定する'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        show={showConfirmation}
+        currentStep={currentStep}
+        destinations={destinations}
+        products={products}
+        totals={totals}
+        loading={loading}
+        onClose={() => setShowConfirmation(false)}
+        onConfirmationBack={handleConfirmationBack}
+        onPlaceOrder={handlePlaceOrder}
+      />
     </section>
   );
 };

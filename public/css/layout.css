@@ -47,6 +47,29 @@ header .container {
 .nav-links a {
   color: var(--text-color);
   font-weight: bold;
+  padding: 8px 12px;
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-links a:hover {
+  background-color: var(--gray-light);
+}
+
+.nav-links a.active {
+  /* color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.1); */
+}
+
+.nav-links a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--primary-color);
 }
 
 .nav-links li {
