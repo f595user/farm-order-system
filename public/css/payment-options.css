@@ -1,0 +1,184 @@
+/*------------------------------------ 
+  Payment Options and Step Indicator Styles
+------------------------------------*/
+
+/* Payment Options */
+.payment-options {
+  margin: 20px 0;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-option:hover {
+  background-color: #f5f5f5;
+}
+
+.payment-option.selected {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.payment-option-radio {
+  margin-right: 15px;
+}
+
+.payment-option-radio input[type="radio"] {
+  margin: 0;
+}
+
+.payment-option-details {
+  flex: 1;
+}
+
+.payment-option-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.payment-option-description {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.credit-card-icons {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.credit-card-icons i {
+  font-size: 24px;
+}
+
+.fa-cc-visa {
+  color: #1a1f71;
+}
+
+.fa-cc-mastercard {
+  color: #eb001b;
+}
+
+.fa-cc-amex {
+  color: #006fcf;
+}
+
+.fa-cc-jcb {
+  color: #0b4ea2;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin: 30px 0;
+  position: relative;
+}
+
+.step-indicator::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.step-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
+.step.active .step-circle {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.step.active .step-label {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.step.completed .step-circle {
+  background-color: var(--success-color, #4caf50);
+  color: white;
+}
+
+/* Checkout Actions */
+.checkout-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.confirmation-actions-left,
+.confirmation-actions-right {
+  display: flex;
+  gap: 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .checkout-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .checkout-actions button {
+    width: 100%;
+  }
+  
+  .confirmation-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .confirmation-actions-left,
+  .confirmation-actions-right {
+    width: 100%;
+  }
+  
+  .confirmation-actions-right {
+    flex-direction: column;
+  }
+}

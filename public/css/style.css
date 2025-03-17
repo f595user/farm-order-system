@@ -23,3 +23,6 @@
 @import 'pages/account.css';
 @import 'pages/admin.css';
 @import 'pages/auth.css';
+
+/* Import Component-specific Styles */
+@import 'payment-options.css';

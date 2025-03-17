@@ -740,7 +740,7 @@ const Order = () => {
       
       {/* Payment Method Selection Modal */}
       {showPaymentSelection && (
-        <div className="modal">
+        <div className="modal" style={{ display: 'block' }}>
           <div className="modal-content">
             <span 
               className="close"
@@ -868,7 +868,7 @@ const Order = () => {
       
       {/* Order Confirmation Modal */}
       {showConfirmation && (
-        <div className="modal">
+        <div className="modal" style={{ display: 'block' }}>
           <div className="modal-content">
             <span 
               className="close"

@@ -18,12 +18,21 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
+  height: 70px; /* Fixed height for consistent vertical space */
+  display: flex;
+  align-items: center;
 }
 
 header .container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .logo h1 {
@@ -33,6 +42,11 @@ header .container {
 
 .nav-links {
   display: flex;
+}
+
+.nav-links a {
+  color: var(--text-color);
+  font-weight: bold;
 }
 
 .nav-links li {
