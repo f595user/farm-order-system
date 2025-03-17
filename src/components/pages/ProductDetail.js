@@ -42,15 +42,8 @@ const ProductDetail = () => {
   }, [fetchProduct]);
 
   const handleOrderNow = () => {
-    // Redirect to order page with product info
-    navigate('/order', { 
-      state: { 
-        products: [{ 
-          product: product,
-          quantity: 1
-        }] 
-      } 
-    });
+    // Redirect to order page without product info to allow selecting any product
+    navigate('/order');
   };
 
   if (loading) {

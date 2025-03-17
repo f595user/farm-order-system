@@ -215,7 +215,10 @@ const OrderPageModule = {
   setupQuantityListeners(destinationId) {
     // Decrease buttons
     document.querySelectorAll(`.decrease-btn[data-destination-id="${destinationId}"]`).forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const productId = btn.dataset.productId;
         const input = document.querySelector(`.quantity-input[data-product-id="${productId}"][data-destination-id="${destinationId}"]`);
         let value = parseInt(input.value);
@@ -230,7 +233,10 @@ const OrderPageModule = {
     
     // Increase buttons
     document.querySelectorAll(`.increase-btn[data-destination-id="${destinationId}"]`).forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const productId = btn.dataset.productId;
         const input = document.querySelector(`.quantity-input[data-product-id="${productId}"][data-destination-id="${destinationId}"]`);
         let value = parseInt(input.value);
@@ -247,7 +253,7 @@ const OrderPageModule = {
     
     // Quantity inputs
     document.querySelectorAll(`.quantity-input[data-destination-id="${destinationId}"]`).forEach(input => {
-      input.addEventListener('change', () => {
+      input.addEventListener('input', (e) => {
         const productId = input.dataset.productId;
         let value = parseInt(input.value);
         
@@ -264,6 +270,31 @@ const OrderPageModule = {
         }
         
         this.updateProductQuantity(destinationId, productId, value);
+      });
+      
+      // Also handle change event for when user presses enter or blurs the input
+      input.addEventListener('change', (e) => {
+        const productId = input.dataset.productId;
+        let value = parseInt(input.value);
+        
+        if (isNaN(value) || value < 0) {
+          value = 0;
+          input.value = value;
+        }
+        
+        const product = this.products.find(p => p._id === productId);
+        
+        if (value > product.stock) {
+          value = product.stock;
+          input.value = value;
+        }
+        
+        this.updateProductQuantity(destinationId, productId, value);
+      });
+      
+      // Add click handler to select all text when clicked
+      input.addEventListener('click', (e) => {
+        e.target.select();
       });
     });
   },

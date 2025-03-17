@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../utils/api';
@@ -17,25 +17,39 @@ const Order = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showPaymentSelection, setShowPaymentSelection] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('credit_card');
+  const [currentStep, setCurrentStep] = useState(1); // 1: Cart, 2: Payment, 3: Confirmation
   
+  // Use refs to store values that shouldn't trigger re-renders
+  const currentUserRef = useRef(currentUser);
+  const initialProductsRef = useRef(initialProducts);
+  const addressPrefilledRef = useRef(false);
+  const fetchCompletedRef = useRef(false);
+  
+  // Fetch products only once on component mount
   useEffect(() => {
+    // Skip if we've already fetched
+    if (fetchCompletedRef.current) return;
+    
     const fetchProducts = async () => {
       try {
         setLoading(true);
         
         // If products were passed in location state, use those
-        if (initialProducts.length > 0) {
-          setProducts(initialProducts.map(item => item.product));
+        if (initialProductsRef.current.length > 0) {
+          const productList = initialProductsRef.current.map(item => item.product);
+          setProducts(productList);
           
           // Initialize first destination with these products
           const productQuantities = {};
-          initialProducts.forEach(item => {
+          initialProductsRef.current.forEach(item => {
             productQuantities[item.product._id] = item.quantity;
           });
           
           setDestinations([{
             id: 1,
-            name: currentUser?.name || '',
+            name: currentUserRef.current?.name || '',
             phone: '',
             postalCode: '',
             city: '',
@@ -45,6 +59,7 @@ const Order = () => {
         } else {
           // Otherwise fetch all available products
           const data = await API.products.getAll({ inStock: true });
+          console.log('Fetched products:', data);
           setProducts(data);
           
           // Initialize first destination with empty quantities
@@ -55,7 +70,7 @@ const Order = () => {
           
           setDestinations([{
             id: 1,
-            name: currentUser?.name || '',
+            name: currentUserRef.current?.name || '',
             phone: '',
             postalCode: '',
             city: '',
@@ -64,10 +79,8 @@ const Order = () => {
           }]);
         }
         
-        // Pre-fill address if user is logged in
-        if (isAuthenticated() && currentUser?.addresses?.length > 0) {
-          prefillAddressFromUser();
-        }
+        // Mark fetch as completed to prevent re-fetching
+        fetchCompletedRef.current = true;
       } catch (err) {
         console.error('Error fetching products:', err);
         setError('商品の読み込みに失敗しました。');
@@ -77,7 +90,23 @@ const Order = () => {
     };
     
     fetchProducts();
-  }, [currentUser, initialProducts]);
+  }, []); // Empty dependency array - only run once on mount
+  
+  // Separate useEffect for pre-filling address that only runs once when loading is complete
+  useEffect(() => {
+    // Skip if we've already pre-filled or if still loading
+    if (addressPrefilledRef.current || loading || !fetchCompletedRef.current) return;
+    
+    // Pre-fill address if user is logged in and we have destinations set up
+    if (
+      destinations.length > 0 && 
+      isAuthenticated && 
+      currentUser?.addresses?.length > 0
+    ) {
+      prefillAddressFromUser();
+      addressPrefilledRef.current = true;
+    }
+  }, [loading]); // Only depend on loading state
 
   const prefillAddressFromUser = () => {
     if (!currentUser || !currentUser.addresses || currentUser.addresses.length === 0) {
@@ -86,6 +115,13 @@ const Order = () => {
     
     // Get default address or first address
     const defaultAddress = currentUser.addresses.find(addr => addr.isDefault) || currentUser.addresses[0];
+    
+    // Only update if we have a destination and the address fields are empty
+    const firstDestination = destinations[0];
+    if (!firstDestination || 
+        (firstDestination.name && firstDestination.address && firstDestination.postalCode)) {
+      return;
+    }
     
     // Update first destination with address data
     setDestinations(prevDestinations => {
@@ -103,19 +139,24 @@ const Order = () => {
   };
 
   const handleQuantityChange = (destinationId, productId, newQuantity) => {
+    console.log(`Changing quantity for product ${productId} to ${newQuantity} in destination ${destinationId}`);
     setDestinations(prevDestinations => {
-      return prevDestinations.map(destination => {
+      const updatedDestinations = prevDestinations.map(destination => {
         if (destination.id === destinationId) {
+          const updatedProducts = {
+            ...destination.products,
+            [productId]: newQuantity
+          };
+          console.log('Updated products:', updatedProducts);
           return {
             ...destination,
-            products: {
-              ...destination.products,
-              [productId]: newQuantity
-            }
+            products: updatedProducts
           };
         }
         return destination;
       });
+      console.log('Updated destinations:', updatedDestinations);
+      return updatedDestinations;
     });
   };
 
@@ -251,7 +292,33 @@ const Order = () => {
       return;
     }
     
+    // Show payment selection screen instead of confirmation
+    setShowPaymentSelection(true);
+    setCurrentStep(2); // Move to payment step
+  };
+  
+  const handlePaymentMethodSelect = (method) => {
+    setSelectedPaymentMethod(method);
+  };
+  
+  const handlePaymentConfirm = () => {
+    // Hide payment selection and show order confirmation
+    setShowPaymentSelection(false);
     setShowConfirmation(true);
+    setCurrentStep(3); // Move to confirmation step
+  };
+  
+  const handlePaymentBack = () => {
+    // Go back to order form
+    setShowPaymentSelection(false);
+    setCurrentStep(1); // Back to cart step
+  };
+  
+  const handleConfirmationBack = () => {
+    // Go back to payment selection
+    setShowConfirmation(false);
+    setShowPaymentSelection(true);
+    setCurrentStep(2); // Back to payment step
   };
 
   const handlePlaceOrder = async () => {
@@ -285,10 +352,10 @@ const Order = () => {
         });
       });
       
-      // Create order
+      // Create order with selected payment method
       const orderData = {
         items,
-        paymentMethod: 'credit_card' // Default payment method
+        paymentMethod: selectedPaymentMethod
       };
       
       // Send order to API
@@ -357,7 +424,8 @@ const Order = () => {
     return <div className="loading">商品を読み込み中...</div>;
   }
 
-  if (error) {
+  // Only show error if we're still loading and have no products
+  if (error && products.length === 0) {
     return <div className="error">{error}</div>;
   }
 
@@ -417,7 +485,10 @@ const Order = () => {
                       onChange={(e) => {
                         const value = e.target.value;
                         handleAddressChange(destination.id, 'postalCode', value);
-                        handlePostalLookup(destination.id, value);
+                      }}
+                      onBlur={(e) => {
+                        // Only lookup address when the field loses focus
+                        handlePostalLookup(destination.id, e.target.value);
                       }}
                       placeholder="例: 123-4567"
                       required 
@@ -483,7 +554,9 @@ const Order = () => {
                             <button 
                               type="button" 
                               className="quantity-btn decrease-btn"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 const currentQuantity = destination.products[product._id] || 0;
                                 if (currentQuantity > 0) {
                                   handleQuantityChange(destination.id, product._id, currentQuantity - 1);
@@ -509,12 +582,15 @@ const Order = () => {
                                   handleQuantityChange(destination.id, product._id, value);
                                 }
                               }}
+                              onClick={(e) => e.target.select()}
                             />
                             
                             <button 
                               type="button" 
                               className="quantity-btn increase-btn"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 const currentQuantity = destination.products[product._id] || 0;
                                 if (currentQuantity < product.stock) {
                                   handleQuantityChange(destination.id, product._id, currentQuantity + 1);
@@ -662,9 +738,137 @@ const Order = () => {
         </div>
       </div>
       
+      {/* Payment Method Selection Modal */}
+      {showPaymentSelection && (
+        <div className="modal">
+          <div className="modal-content">
+            <span 
+              className="close"
+              onClick={() => setShowPaymentSelection(false)}
+            >
+              &times;
+            </span>
+            
+            <h2>お支払い方法</h2>
+            
+            {/* Step Indicator */}
+            <div className="step-indicator">
+              <div className={`step ${currentStep >= 1 ? 'completed' : ''}`}>
+                <div className="step-circle">1</div>
+                <div className="step-label">カート</div>
+              </div>
+              <div className={`step ${currentStep === 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
+                <div className="step-circle">2</div>
+                <div className="step-label">お支払い</div>
+              </div>
+              <div className={`step ${currentStep === 3 ? 'active' : ''}`}>
+                <div className="step-circle">3</div>
+                <div className="step-label">確認</div>
+              </div>
+            </div>
+            
+            <div id="payment-selection-content">
+              <h3>支払い方法を選択</h3>
+              <div className="payment-options">
+                <div 
+                  className={`payment-option ${selectedPaymentMethod === 'credit_card' ? 'selected' : ''}`} 
+                  data-method="credit_card"
+                  onClick={() => handlePaymentMethodSelect('credit_card')}
+                >
+                  <div className="payment-option-radio">
+                    <input 
+                      type="radio" 
+                      name="payment-method" 
+                      id="payment-credit-card" 
+                      checked={selectedPaymentMethod === 'credit_card'}
+                      onChange={() => handlePaymentMethodSelect('credit_card')}
+                    />
+                    <label htmlFor="payment-credit-card"></label>
+                  </div>
+                  <div className="payment-option-details">
+                    <div className="payment-option-name">クレジットカード</div>
+                    <div className="payment-option-description">
+                      <div className="credit-card-icons">
+                        <i className="fab fa-cc-visa"></i>
+                        <i className="fab fa-cc-mastercard"></i>
+                        <i className="fab fa-cc-amex"></i>
+                        <i className="fab fa-cc-jcb"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`payment-option ${selectedPaymentMethod === 'bank_transfer' ? 'selected' : ''}`} 
+                  data-method="bank_transfer"
+                  onClick={() => handlePaymentMethodSelect('bank_transfer')}
+                >
+                  <div className="payment-option-radio">
+                    <input 
+                      type="radio" 
+                      name="payment-method" 
+                      id="payment-bank-transfer"
+                      checked={selectedPaymentMethod === 'bank_transfer'}
+                      onChange={() => handlePaymentMethodSelect('bank_transfer')}
+                    />
+                    <label htmlFor="payment-bank-transfer"></label>
+                  </div>
+                  <div className="payment-option-details">
+                    <div className="payment-option-name">銀行振込</div>
+                    <div className="payment-option-description">
+                      注文確認後、振込先情報をメールでお送りします。
+                    </div>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`payment-option ${selectedPaymentMethod === 'cash_on_delivery' ? 'selected' : ''}`} 
+                  data-method="cash_on_delivery"
+                  onClick={() => handlePaymentMethodSelect('cash_on_delivery')}
+                >
+                  <div className="payment-option-radio">
+                    <input 
+                      type="radio" 
+                      name="payment-method" 
+                      id="payment-cash-on-delivery"
+                      checked={selectedPaymentMethod === 'cash_on_delivery'}
+                      onChange={() => handlePaymentMethodSelect('cash_on_delivery')}
+                    />
+                    <label htmlFor="payment-cash-on-delivery"></label>
+                  </div>
+                  <div className="payment-option-details">
+                    <div className="payment-option-name">代金引換</div>
+                    <div className="payment-option-description">
+                      商品お届け時に配送員に直接お支払いください。
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="checkout-actions">
+                <button 
+                  className="btn" 
+                  id="payment-back-btn"
+                  onClick={handlePaymentBack}
+                >
+                  戻る
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  id="payment-next-btn"
+                  onClick={handlePaymentConfirm}
+                >
+                  次へ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Order Confirmation Modal */}
       {showConfirmation && (
-        <div className="modal" style={{ display: 'block' }}>
+        <div className="modal">
           <div className="modal-content">
             <span 
               className="close"
@@ -674,6 +878,22 @@ const Order = () => {
             </span>
             
             <h2>注文確認</h2>
+            
+            {/* Step Indicator */}
+            <div className="step-indicator">
+              <div className={`step ${currentStep >= 1 ? 'completed' : ''}`}>
+                <div className="step-circle">1</div>
+                <div className="step-label">カート</div>
+              </div>
+              <div className={`step ${currentStep >= 2 ? 'completed' : ''}`}>
+                <div className="step-circle">2</div>
+                <div className="step-label">お支払い</div>
+              </div>
+              <div className={`step ${currentStep === 3 ? 'active' : ''}`}>
+                <div className="step-circle">3</div>
+                <div className="step-label">確認</div>
+              </div>
+            </div>
             
             <div id="order-confirmation-content">
               <h3>注文内容の確認</h3>
@@ -757,22 +977,34 @@ const Order = () => {
             </div>
             
             <div className="confirmation-actions">
-              <button 
-                id="edit-order-btn" 
-                className="btn"
-                onClick={() => setShowConfirmation(false)}
-              >
-                注文を編集する
-              </button>
+              <div className="confirmation-actions-left">
+                <button 
+                  id="back-to-payment-btn" 
+                  className="btn"
+                  onClick={handleConfirmationBack}
+                >
+                  戻る
+                </button>
+              </div>
               
-              <button 
-                id="place-order-btn" 
-                className="btn btn-primary"
-                onClick={handlePlaceOrder}
-                disabled={loading}
-              >
-                {loading ? '処理中...' : '注文を確定する'}
-              </button>
+              <div className="confirmation-actions-right">
+                <button 
+                  id="edit-order-btn" 
+                  className="btn"
+                  onClick={() => setShowConfirmation(false)}
+                >
+                  注文を編集する
+                </button>
+                
+                <button 
+                  id="place-order-btn" 
+                  className="btn btn-primary"
+                  onClick={handlePlaceOrder}
+                  disabled={loading}
+                >
+                  {loading ? '処理中...' : '注文を確定する'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
