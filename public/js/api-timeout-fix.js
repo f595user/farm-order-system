@@ -520,6 +520,16 @@ const EnhancedAPI = {
     },
 
     /**
+     * Update shipping details
+     * @param {string} orderId - Order ID
+     * @param {Object} shippingDetails - Shipping details
+     * @returns {Promise} - Promise with response data
+     */
+    updateShippingDetails(orderId, shippingDetails) {
+      return EnhancedAPI.put(`/orders/${orderId}/shipping`, shippingDetails);
+    },
+
+    /**
      * Create a new product
      * @param {Object} productData - Product data
      * @returns {Promise} - Promise with response data
@@ -553,6 +563,89 @@ const EnhancedAPI = {
       EnhancedAPI.clearCacheForEndpoint('/products');
       EnhancedAPI.clearCacheForEndpoint(`/products/${productId}`);
       return EnhancedAPI.delete(`/products/${productId}`);
+    },
+
+    /**
+     * Update product stock
+     * @param {string} productId - Product ID
+     * @param {number} stock - New stock value
+     * @returns {Promise} - Promise with response data
+     */
+    updateProductStock(productId, stock) {
+      // Clear product cache when updating stock
+      EnhancedAPI.clearCacheForEndpoint('/products');
+      EnhancedAPI.clearCacheForEndpoint(`/products/${productId}`);
+      return EnhancedAPI.put(`/products/${productId}/stock`, { stock });
+    },
+
+    /**
+     * Update product status
+     * @param {string} productId - Product ID
+     * @param {string} status - New status value
+     * @returns {Promise} - Promise with response data
+     */
+    updateProductStatus(productId, status) {
+      // Clear product cache when updating status
+      EnhancedAPI.clearCacheForEndpoint('/products');
+      EnhancedAPI.clearCacheForEndpoint(`/products/${productId}`);
+      return EnhancedAPI.put(`/products/${productId}/status`, { status });
+    },
+
+    /**
+     * Update product shipping estimate
+     * @param {string} productId - Product ID
+     * @param {string} shippingEstimate - New shipping estimate text
+     * @returns {Promise} - Promise with response data
+     */
+    updateShippingEstimate(productId, shippingEstimate) {
+      // Clear product cache when updating shipping estimate
+      EnhancedAPI.clearCacheForEndpoint('/products');
+      EnhancedAPI.clearCacheForEndpoint(`/products/${productId}`);
+      return EnhancedAPI.put(`/products/${productId}/shipping-estimate`, { shippingEstimate });
+    },
+
+    /**
+     * Get sales report
+     * @param {Object} params - Report parameters
+     * @returns {Promise} - Promise with response data
+     */
+    getSalesReport(params = {}) {
+      const queryParams = new URLSearchParams();
+      
+      if (params.period) {
+        queryParams.append('period', params.period);
+      }
+      
+      if (params.startDate) {
+        queryParams.append('startDate', params.startDate);
+      }
+      
+      if (params.endDate) {
+        queryParams.append('endDate', params.endDate);
+      }
+      
+      const queryString = queryParams.toString();
+      return EnhancedAPI.get(`/admin/reports/sales${queryString ? `?${queryString}` : ''}`);
+    },
+
+    /**
+     * Get product performance report
+     * @param {Object} params - Report parameters
+     * @returns {Promise} - Promise with response data
+     */
+    getProductReport(params = {}) {
+      const queryParams = new URLSearchParams();
+      
+      if (params.startDate) {
+        queryParams.append('startDate', params.startDate);
+      }
+      
+      if (params.endDate) {
+        queryParams.append('endDate', params.endDate);
+      }
+      
+      const queryString = queryParams.toString();
+      return EnhancedAPI.get(`/admin/reports/products${queryString ? `?${queryString}` : ''}`);
     }
   }
 };

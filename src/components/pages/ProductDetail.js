@@ -7,7 +7,6 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   
   const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -42,36 +41,13 @@ const ProductDetail = () => {
     fetchProduct();
   }, [fetchProduct]);
 
-  const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value);
-    if (isNaN(value) || value < 1) {
-      setQuantity(1);
-    } else if (product && value > product.stock) {
-      setQuantity(product.stock);
-    } else {
-      setQuantity(value);
-    }
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-
-  const increaseQuantity = () => {
-    if (product && quantity < product.stock) {
-      setQuantity(quantity + 1);
-    }
-  };
-
   const handleOrderNow = () => {
     // Redirect to order page with product info
     navigate('/order', { 
       state: { 
         products: [{ 
           product: product,
-          quantity: quantity
+          quantity: 1
         }] 
       } 
     });
@@ -89,11 +65,6 @@ const ProductDetail = () => {
     return <div className="not-found">商品が見つかりませんでした。</div>;
   }
 
-  // Get the first image or use a placeholder
-  const imageUrl = product.images && product.images.length > 0
-    ? product.images[0]
-    : '/images/placeholder.jpg';
-  
   // Format price with Japanese Yen
   const formattedPrice = new Intl.NumberFormat('ja-JP', {
     style: 'currency',
@@ -114,25 +85,6 @@ const ProductDetail = () => {
   return (
     <section className="product-detail">
       <div className="product-detail-container">
-        <div className="product-images">
-          <div className="main-image">
-            <img 
-              src={imageUrl} 
-              alt={product.name} 
-              className="product-detail-image"
-            />
-          </div>
-          {product.images && product.images.length > 1 && (
-            <div className="thumbnail-images">
-              {product.images.map((image, index) => (
-                <div className="thumbnail" key={index}>
-                  <img src={image} alt={`${product.name} ${index + 1}`} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        
         <div className="product-detail-info">
           <h2 className="product-detail-name">
             {product.name} <span className="product-unit">({product.unit})</span>
@@ -173,36 +125,6 @@ const ProductDetail = () => {
           
           {product.status === '販売中' && product.stock > 0 ? (
             <div className="product-actions">
-              <div className="quantity-selector">
-                <label htmlFor="quantity">数量:</label>
-                <div className="quantity-input-group">
-                  <button 
-                    type="button" 
-                    className="quantity-btn" 
-                    onClick={decreaseQuantity}
-                    disabled={quantity <= 1}
-                  >
-                    -
-                  </button>
-                  <input 
-                    type="number" 
-                    id="quantity" 
-                    min="1" 
-                    max={product.stock} 
-                    value={quantity}
-                    onChange={handleQuantityChange}
-                  />
-                  <button 
-                    type="button" 
-                    className="quantity-btn" 
-                    onClick={increaseQuantity}
-                    disabled={quantity >= product.stock}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              
               <button 
                 className="btn btn-primary btn-large" 
                 onClick={handleOrderNow}

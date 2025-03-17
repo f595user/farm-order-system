@@ -94,11 +94,6 @@ const Home = () => {
         ) : (
           <div className="product-grid" id="featured-products-grid">
             {featuredProducts.map(product => {
-              // Get the first image or use a placeholder
-              const imageUrl = product.images && product.images.length > 0
-                ? product.images[0]
-                : '/images/placeholder.jpg';
-              
               // Format price with Japanese Yen
               const formattedPrice = new Intl.NumberFormat('ja-JP', {
                 style: 'currency',
@@ -119,11 +114,6 @@ const Home = () => {
               return (
                 <div className="product-card" key={product._id}>
                   <Link to={`/products/${product._id}`}>
-                    <img 
-                      src={imageUrl} 
-                      alt={product.name} 
-                      className="product-image"
-                    />
                     <div className="product-info">
                       <h3 className="product-name">
                         {product.name} <span className="product-unit">({product.unit})</span>
