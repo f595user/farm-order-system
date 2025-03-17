@@ -27,7 +27,7 @@ const PaymentModal = ({
         <div className="step-indicator">
           <div className={`step ${currentStep >= 1 ? 'completed' : ''}`}>
             <div className="step-circle">1</div>
-            <div className="step-label">カート</div>
+            <div className="step-label">差出人</div>
           </div>
           <div className={`step ${currentStep === 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
             <div className="step-circle">2</div>

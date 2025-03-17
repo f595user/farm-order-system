@@ -9,6 +9,7 @@ import OrderSummary from '../order/OrderSummary';
 import PaymentModal from '../order/PaymentModal';
 import ConfirmationModal from '../order/ConfirmationModal';
 import ShippingForm from '../order/ShippingForm';
+import SenderModal from '../order/SenderModal';
 
 const Order = () => {
   const { currentUser, isAuthenticated } = useAuth();
@@ -24,9 +25,19 @@ const Order = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showSenderSelection, setShowSenderSelection] = useState(false);
   const [showPaymentSelection, setShowPaymentSelection] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('credit_card');
-  const [currentStep, setCurrentStep] = useState(1); // 1: Cart, 2: Payment, 3: Confirmation
+  const [currentStep, setCurrentStep] = useState(0); // 0: Initial, 1: Sender, 2: Payment, 3: Confirmation
+  
+  // Sender information state
+  const [senderInfo, setSenderInfo] = useState({
+    name: '',
+    phone: '',
+    postalCode: '',
+    city: '',
+    address: ''
+  });
   
   // Use refs to store values that shouldn't trigger re-renders
   const currentUserRef = useRef(currentUser);
@@ -318,9 +329,48 @@ const Order = () => {
       return;
     }
     
-    // Show payment selection screen instead of confirmation
+    // Show sender selection screen
+    setShowSenderSelection(true);
+    setCurrentStep(1); // Move to sender step
+    
+    // Pre-fill sender info with first destination info if empty
+    if (!senderInfo.name && destinations.length > 0) {
+      const firstDestination = destinations[0];
+      setSenderInfo({
+        name: firstDestination.name || '',
+        phone: firstDestination.phone || '',
+        postalCode: firstDestination.postalCode || '',
+        city: firstDestination.city || '',
+        address: firstDestination.address || ''
+      });
+    }
+  };
+  
+  const handleSenderInfoChange = (field, value) => {
+    setSenderInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  const handleSenderConfirm = () => {
+    // Validate sender info
+    if (!senderInfo.name || !senderInfo.phone || !senderInfo.postalCode || 
+        !senderInfo.city || !senderInfo.address) {
+      alert('差出人情報をすべて入力してください。');
+      return;
+    }
+    
+    // Hide sender selection and show payment selection
+    setShowSenderSelection(false);
     setShowPaymentSelection(true);
     setCurrentStep(2); // Move to payment step
+  };
+  
+  const handleSenderBack = () => {
+    // Go back to order form
+    setShowSenderSelection(false);
+    setCurrentStep(0); // Back to initial step
   };
   
   const handlePaymentMethodSelect = (method) => {
@@ -335,9 +385,10 @@ const Order = () => {
   };
   
   const handlePaymentBack = () => {
-    // Go back to order form
+    // Go back to sender form
     setShowPaymentSelection(false);
-    setCurrentStep(1); // Back to cart step
+    setShowSenderSelection(true);
+    setCurrentStep(1); // Back to sender step
   };
   
   const handleConfirmationBack = () => {
@@ -378,10 +429,17 @@ const Order = () => {
         });
       });
       
-      // Create order with selected payment method
+      // Create order with selected payment method and sender info
       const orderData = {
         items,
-        paymentMethod: selectedPaymentMethod
+        paymentMethod: selectedPaymentMethod,
+        senderInfo: {
+          name: senderInfo.name,
+          phone: senderInfo.phone,
+          address: senderInfo.address,
+          city: senderInfo.city,
+          postalCode: senderInfo.postalCode
+        }
       };
       
       // Send order to API
@@ -505,6 +563,17 @@ const Order = () => {
         />
       </div>
       
+      {/* Sender Information Modal */}
+      <SenderModal
+        show={showSenderSelection}
+        currentStep={currentStep}
+        senderInfo={senderInfo}
+        onSenderInfoChange={handleSenderInfoChange}
+        onClose={() => setShowSenderSelection(false)}
+        onSenderConfirm={handleSenderConfirm}
+        onSenderBack={handleSenderBack}
+      />
+      
       {/* Payment Method Selection Modal */}
       <PaymentModal
         show={showPaymentSelection}
@@ -524,6 +593,7 @@ const Order = () => {
         products={products}
         totals={totals}
         loading={loading}
+        senderInfo={senderInfo}
         onClose={() => setShowConfirmation(false)}
         onConfirmationBack={handleConfirmationBack}
         onPlaceOrder={handlePlaceOrder}

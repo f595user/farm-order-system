@@ -324,6 +324,26 @@
   margin-bottom: 10px;
 }
 
+.summary-sender {
+  margin-top: 15px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f0f8ff; /* Light blue background to distinguish from shipping */
+  border-radius: 4px;
+  border-left: 3px solid var(--primary-color);
+}
+
+.summary-sender-header {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.summary-sender-details {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
 .summary-destination {
   margin-top: 15px;
   padding: 10px;
@@ -476,6 +496,73 @@
 .step.active .step-label {
   color: var(--primary-color);
   font-weight: 500;
+}
+
+/* Sender Information */
+.use-account-address {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.saved-addresses {
+  margin-top: 15px;
+}
+
+.saved-address {
+  display: flex;
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative; /* Add position relative for absolute positioning of badge */
+}
+
+.saved-address:hover {
+  background-color: #f5f5f5;
+}
+
+.saved-address.selected {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+}
+
+.address-radio {
+  margin-right: 15px;
+  margin-top: 3px;
+}
+
+.address-details {
+  flex: 1;
+}
+
+.address-name {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.default-badge {
+  font-size: 11px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  position: absolute; /* Position absolutely */
+  top: 10px; /* Position from top */
+  right: 10px; /* Position from right */
+}
+
+.address-info {
+  font-size: 14px;
+  color: #666;
+}
+
+.sender-form {
+  margin: 20px 0;
 }
 
 /* Payment Options */

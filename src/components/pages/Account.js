@@ -273,13 +273,13 @@ const Account = () => {
         
         <div className="addresses-section">
           <div className="section-header">
-            <h3>配送先住所</h3>
+            <h3>差出人住所</h3>
           </div>
           
           {addresses.length === 0 ? (
             <div className="empty-state">
-              <p>配送先住所が登録されていません。</p>
-              <p>「新しい住所を追加」ボタンをクリックして、配送先住所を登録してください。</p>
+              <p>差出人住所が登録されていません。</p>
+              <p>「新しい住所を追加」ボタンをクリックして、差出人住所を登録してください。</p>
             </div>
           ) : (
             <div className="addresses-list">
@@ -430,7 +430,7 @@ const Account = () => {
             >
               &times;
             </span>
-            <h2>{addressFormMode === 'add' ? '新しい配送先住所を追加' : '配送先住所を編集'}</h2>
+            <h2>{addressFormMode === 'add' ? '新しい差出人住所を追加' : '差出人住所を編集'}</h2>
             <form id="address-form" onSubmit={handleAddressSubmit}>
               <div className="form-group">
                 <label htmlFor="address-name">名前</label>
@@ -496,7 +496,7 @@ const Account = () => {
                     checked={addressIsDefault}
                     onChange={(e) => setAddressIsDefault(e.target.checked)}
                   />
-                  デフォルトの配送先として設定
+                  デフォルトの差出人として設定
                 </label>
               </div>
               <button 

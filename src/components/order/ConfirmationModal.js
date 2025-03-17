@@ -9,7 +9,8 @@ const ConfirmationModal = ({
   loading,
   onClose,
   onConfirmationBack,
-  onPlaceOrder
+  onPlaceOrder,
+  senderInfo
 }) => {
   if (!show) return null;
 
@@ -29,7 +30,7 @@ const ConfirmationModal = ({
         <div className="step-indicator">
           <div className={`step ${currentStep >= 1 ? 'completed' : ''}`}>
             <div className="step-circle">1</div>
-            <div className="step-label">カート</div>
+            <div className="step-label">差出人</div>
           </div>
           <div className={`step ${currentStep >= 2 ? 'completed' : ''}`}>
             <div className="step-circle">2</div>
@@ -43,6 +44,16 @@ const ConfirmationModal = ({
         
         <div id="order-confirmation-content">
           <h3>注文内容の確認</h3>
+          
+          {/* Sender Information */}
+          <div className="summary-sender">
+            <div className="summary-sender-header">差出人情報</div>
+            <div className="summary-sender-details">
+              {senderInfo?.name}<br />
+              〒{senderInfo?.postalCode} {senderInfo?.city} {senderInfo?.address}<br />
+              {senderInfo?.phone}
+            </div>
+          </div>
           
           {destinations.map(destination => {
             // Check if destination has products
