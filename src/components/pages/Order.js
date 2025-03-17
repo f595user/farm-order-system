@@ -466,14 +466,6 @@ const Order = () => {
                   <div className="product-selection-container">
                     {products.map(product => (
                       <div className="product-selection-item" key={product._id}>
-                        <img 
-                          src={product.images && product.images.length > 0 
-                            ? product.images[0] 
-                            : '/images/placeholder.jpg'} 
-                          alt={product.name} 
-                          className="product-selection-image" 
-                        />
-                        
                         <div className="product-selection-info">
                           <div className="product-selection-name">
                             {product.name} <span className="product-unit">({product.unit})</span>

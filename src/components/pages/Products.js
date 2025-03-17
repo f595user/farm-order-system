@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import API from '../../utils/api';
+import ProductDetailModal from './modals/ProductDetailModal';
 
 const Products = () => {
   const navigate = useNavigate();
@@ -12,6 +13,10 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
+  
+  // Modal states
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Cache states
   const [productsCache, setProductsCache] = useState(null);
@@ -70,6 +75,16 @@ const Products = () => {
   const handleStartOrder = () => {
     // Navigate to the order page
     navigate('/order');
+  };
+
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const closeProductModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
   return (
@@ -146,7 +161,7 @@ const Products = () => {
               }
               
               return (
-                <div className="product-card" key={product._id} onClick={() => navigate(`/products/${product._id}`)}>
+                <div className="product-card" key={product._id} onClick={() => openProductModal(product)}>
                   <div className="product-info">
                     <h3 className="product-name">
                       {product.name} <span className="product-unit">({product.unit})</span>
@@ -164,7 +179,7 @@ const Products = () => {
                         className="btn view-product-btn" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/products/${product._id}`);
+                          openProductModal(product);
                         }}
                       >
                         詳細
@@ -185,6 +200,13 @@ const Products = () => {
             </button>
           </div>
         </>
+      )}
+
+      {isModalOpen && selectedProduct && (
+        <ProductDetailModal 
+          product={selectedProduct} 
+          onClose={closeProductModal} 
+        />
       )}
     </section>
   );

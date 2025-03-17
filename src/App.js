@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout';
 import Home from './components/pages/Home';
 import Products from './components/pages/Products';
 import ProductDetail from './components/pages/ProductDetail';
+import { Navigate } from 'react-router-dom';
 import Order from './components/pages/Order';
 import Account from './components/pages/Account';
 import Admin from './components/pages/Admin';
@@ -115,7 +116,7 @@ const App = () => {
           {/* Public routes */}
           <Route index element={<Home />} />
           <Route path="products" element={<Products />} />
-          <Route path="products/:id" element={<ProductDetail />} />
+          <Route path="products/:id" element={<Navigate to="/products" replace />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           
