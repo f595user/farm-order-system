@@ -271,7 +271,7 @@ header .container {
   position: relative;
 }
 
-.cart-count {
+/* .cart-count {
   position: absolute;
   top: -8px;
   right: -8px;
@@ -284,7 +284,7 @@ header .container {
   display: flex;
   justify-content: center;
   align-items: center;
-}
+} */
 
 .auth-buttons {
   display: flex;
@@ -803,7 +803,7 @@ main {
   padding: 5px 10px;
 }
 
-/* Cart Tab Styles */
+/* Cart Tab Styles
 .cart-items {
   margin-bottom: 30px;
 }
@@ -893,7 +893,7 @@ main {
   font-weight: bold;
   color: var(--primary-color);
   border-bottom: none;
-}
+} */
 
 /* Modal Styles */
 .modal {

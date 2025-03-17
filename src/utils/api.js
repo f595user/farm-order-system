@@ -1,3 +1,3 @@
-import EnhancedAPI from '../../public/js/api-timeout-fix';
+import EnhancedAPI from './api-timeout';
 
 export default EnhancedAPI;
