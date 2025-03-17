@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../../utils/api';
 
@@ -11,22 +11,36 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const data = await API.products.getById(id);
-        setProduct(data);
-      } catch (err) {
-        console.error('Error fetching product:', err);
-        setError('商品の読み込みに失敗しました。');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch product with error handling
+  const fetchProduct = useCallback(async () => {
+    if (!id) {
+      setError('商品IDが見つかりません。');
+      setLoading(false);
+      return;
+    }
 
-    fetchProduct();
+    try {
+      console.log('Fetching product details for ID:', id);
+      setLoading(true);
+      const data = await API.products.getById(id);
+      
+      if (!data) {
+        throw new Error('Product data is empty or invalid');
+      }
+      
+      console.log('Product details received:', data);
+      setProduct(data);
+    } catch (err) {
+      console.error('Error fetching product:', err);
+      setError('商品詳細の読み込みに失敗しました。');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
 
   const handleQuantityChange = (e) => {
     const value = parseInt(e.target.value);
@@ -75,16 +89,37 @@ const ProductDetail = () => {
     return <div className="not-found">商品が見つかりませんでした。</div>;
   }
 
+  // Get the first image or use a placeholder
+  const imageUrl = product.images && product.images.length > 0
+    ? product.images[0]
+    : '/images/placeholder.jpg';
+  
+  // Format price with Japanese Yen
+  const formattedPrice = new Intl.NumberFormat('ja-JP', {
+    style: 'currency',
+    currency: 'JPY'
+  }).format(product.price);
+  
+  // Stock status - only show out of stock message, not the quantity
+  const stockStatus = product.stock > 0
+    ? ''
+    : <span style={{ color: 'red' }}>在庫切れ</span>;
+  
+  // Status display
+  let statusDisplay = null;
+  if (product.status !== '販売中') {
+    statusDisplay = <div className="product-detail-status">{product.status}</div>;
+  }
+
   return (
     <section className="product-detail">
       <div className="product-detail-container">
         <div className="product-images">
           <div className="main-image">
             <img 
-              src={product.images && product.images.length > 0 
-                ? product.images[0] 
-                : '/images/placeholder.jpg'} 
+              src={imageUrl} 
               alt={product.name} 
+              className="product-detail-image"
             />
           </div>
           {product.images && product.images.length > 1 && (
@@ -98,30 +133,28 @@ const ProductDetail = () => {
           )}
         </div>
         
-        <div className="product-info">
-          <h2 className="product-name">{product.name}</h2>
+        <div className="product-detail-info">
+          <h2 className="product-detail-name">
+            {product.name} <span className="product-unit">({product.unit})</span>
+          </h2>
           
-          <div className="product-price">
-            {new Intl.NumberFormat('ja-JP', {
-              style: 'currency',
-              currency: 'JPY'
-            }).format(product.price)}
-            <span className="product-unit">（{product.unit}）</span>
+          <div className="product-detail-price">
+            {formattedPrice}
           </div>
           
-          <div className="product-status">
-            <span className={`status-badge ${product.status === '販売中' ? 'in-stock' : 'out-of-stock'}`}>
-              {product.status}
-            </span>
-            <span className="stock-info">
-              在庫: {product.stock} {product.unit}
-            </span>
-          </div>
+          {stockStatus && <div className="product-detail-stock">{stockStatus}</div>}
+          
+          {statusDisplay}
+          
+          {product.status === '販売中' && (
+            <div className="product-detail-shipping">
+              <i className="fas fa-truck"></i> {product.shippingEstimate}
+            </div>
+          )}
           
           {product.description && (
-            <div className="product-description">
-              <h3>商品説明</h3>
-              <p>{product.description}</p>
+            <div className="product-detail-description">
+              {product.description}
             </div>
           )}
           
@@ -180,13 +213,6 @@ const ProductDetail = () => {
           ) : (
             <div className="out-of-stock-message">
               <p>この商品は現在購入できません。</p>
-            </div>
-          )}
-          
-          {product.shippingEstimate && (
-            <div className="shipping-info">
-              <h3>配送について</h3>
-              <p>{product.shippingEstimate}</p>
             </div>
           )}
         </div>

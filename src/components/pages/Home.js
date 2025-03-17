@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../../utils/api';
 
@@ -6,23 +6,45 @@ const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Cache states
+  const [productsCache, setProductsCache] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(0);
+  const cacheDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+  const fetchFeaturedProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Check if we can use cache
+      const useCache = productsCache && 
+                      (Date.now() - cacheTimestamp < cacheDuration);
+      
+      let products;
+      if (useCache) {
+        console.log('Using cached products for featured products');
+        products = productsCache.slice(0, 4);
+      } else {
+        console.log('Fetching products for featured products');
+        products = await API.products.getAll({ limit: 4 });
+        
+        // Update cache
+        setProductsCache(products);
+        setCacheTimestamp(Date.now());
+      }
+      
+      setFeaturedProducts(products);
+    } catch (err) {
+      console.error('Error fetching featured products:', err);
+      setError('おすすめ商品の読み込みに失敗しました。');
+    } finally {
+      setLoading(false);
+    }
+  }, [productsCache, cacheTimestamp, cacheDuration]);
 
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        setLoading(true);
-        const products = await API.products.getAll({ limit: 4 });
-        setFeaturedProducts(products);
-      } catch (err) {
-        console.error('Error fetching featured products:', err);
-        setError('商品の読み込みに失敗しました。');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchFeaturedProducts();
-  }, []);
+  }, [fetchFeaturedProducts]);
 
   const handleShopNow = () => {
     window.scrollTo({
@@ -41,6 +63,7 @@ const Home = () => {
           <button 
             className="btn btn-primary btn-large" 
             onClick={handleShopNow}
+            data-action="shop-now"
           >
             今すぐ購入
           </button>
@@ -50,11 +73,11 @@ const Home = () => {
       <div className="featured-categories">
         <h3>カテゴリー</h3>
         <div className="category-grid">
-          <div className="category-card">
+          <div className="category-card" data-category="アスパラ">
             <img src="/images/アスパラ２" alt="アスパラ" />
             <h4>アスパラ</h4>
           </div>
-          <div className="category-card">
+          <div className="category-card" data-category="はちみつ">
             <img src="/images/ハチミツ" alt="はちみつ" />
             <h4>はちみつ</h4>
           </div>
@@ -69,31 +92,60 @@ const Home = () => {
         ) : error ? (
           <div className="error">{error}</div>
         ) : (
-          <div className="product-grid">
-            {featuredProducts.map(product => (
-              <div className="product-card" key={product._id}>
-                <div className="product-image">
-                  <img 
-                    src={product.images && product.images.length > 0 
-                      ? product.images[0] 
-                      : '/images/placeholder.jpg'} 
-                    alt={product.name} 
-                  />
-                </div>
-                <div className="product-info">
-                  <h4 className="product-name">{product.name}</h4>
-                  <p className="product-price">
-                    {new Intl.NumberFormat('ja-JP', {
-                      style: 'currency',
-                      currency: 'JPY'
-                    }).format(product.price)}
-                  </p>
-                  <Link to={`/products/${product._id}`} className="btn btn-primary">
-                    詳細を見る
+          <div className="product-grid" id="featured-products-grid">
+            {featuredProducts.map(product => {
+              // Get the first image or use a placeholder
+              const imageUrl = product.images && product.images.length > 0
+                ? product.images[0]
+                : '/images/placeholder.jpg';
+              
+              // Format price with Japanese Yen
+              const formattedPrice = new Intl.NumberFormat('ja-JP', {
+                style: 'currency',
+                currency: 'JPY'
+              }).format(product.price);
+              
+              // Stock status - only show out of stock message, not the quantity
+              const stockStatus = product.stock > 0
+                ? ''
+                : <span style={{ color: 'red' }}>在庫切れ</span>;
+              
+              // Status display
+              let statusDisplay = null;
+              if (product.status !== '販売中') {
+                statusDisplay = <div className="product-status">{product.status}</div>;
+              }
+              
+              return (
+                <div className="product-card" key={product._id}>
+                  <Link to={`/products/${product._id}`}>
+                    <img 
+                      src={imageUrl} 
+                      alt={product.name} 
+                      className="product-image"
+                    />
+                    <div className="product-info">
+                      <h3 className="product-name">
+                        {product.name} <span className="product-unit">({product.unit})</span>
+                      </h3>
+                      <div className="product-price">{formattedPrice}</div>
+                      {stockStatus && <div className="product-stock">{stockStatus}</div>}
+                      {product.shippingEstimate && (
+                        <div className="product-shipping-estimate">
+                          <i className="fas fa-truck"></i> {product.shippingEstimate}
+                        </div>
+                      )}
+                      {statusDisplay}
+                      <div className="product-actions">
+                        <button className="btn view-product-btn">
+                          詳細
+                        </button>
+                      </div>
+                    </div>
                   </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         

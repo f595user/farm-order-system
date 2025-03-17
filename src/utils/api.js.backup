@@ -1,0 +1,9 @@
+/**
+ * Import the enhanced API with timeout handling from the original implementation
+ */
+import EnhancedAPI from '../../public/js/api-timeout-fix.js';
+
+/**
+ * Export the enhanced API for use in the React application
+ */
+export default EnhancedAPI;
