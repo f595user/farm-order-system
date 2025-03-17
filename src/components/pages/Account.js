@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 import API from '../../utils/api';
 
 const Account = () => {
@@ -8,7 +9,9 @@ const Account = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [addresses, setAddresses] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   
@@ -28,8 +31,38 @@ const Account = () => {
       setName(currentUser.name || '');
       setEmail(currentUser.email || '');
       setAddresses(currentUser.addresses || []);
+      
+      // Fetch order history
+      fetchOrders();
     }
   }, [currentUser]);
+  
+  const fetchOrders = async () => {
+    if (!isAuthenticated() || !currentUser) return;
+    
+    try {
+      setOrdersLoading(true);
+      const orderData = await API.orders.getAll();
+      
+      // Filter orders to ensure only the current user's orders are displayed
+      // This is a safeguard in case the API returns orders from other users
+      const filteredOrders = orderData.filter(order => 
+        order.user && (
+          // If order.user is an object with _id property (populated)
+          (order.user._id && order.user._id.toString() === currentUser.id) ||
+          // If order.user is just the ID (not populated)
+          (typeof order.user === 'string' && order.user === currentUser.id)
+        )
+      );
+      
+      setOrders(filteredOrders);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setError('注文履歴の取得に失敗しました。');
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -118,6 +151,29 @@ const Account = () => {
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError(err.message || 'デフォルト住所の設定に失敗しました。');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('この注文をキャンセルしてもよろしいですか？')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await API.orders.cancel(orderId);
+      
+      // Refresh orders after cancellation
+      fetchOrders();
+      
+      setSuccessMessage('注文をキャンセルしました。');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setError(err.message || '注文のキャンセルに失敗しました。');
     } finally {
       setLoading(false);
     }
@@ -216,10 +272,15 @@ const Account = () => {
         </div>
         
         <div className="addresses-section">
-          <h3>配送先住所</h3>
+          <div className="section-header">
+            <h3>配送先住所</h3>
+          </div>
           
           {addresses.length === 0 ? (
-            <p>配送先住所が登録されていません。</p>
+            <div className="empty-state">
+              <p>配送先住所が登録されていません。</p>
+              <p>「新しい住所を追加」ボタンをクリックして、配送先住所を登録してください。</p>
+            </div>
           ) : (
             <div className="addresses-list">
               {addresses.map(address => (
@@ -230,29 +291,126 @@ const Account = () => {
                   {address.isDefault && <span className="default-badge">デフォルト</span>}
                   <div className="address-name">{address.name}</div>
                   <div className="address-details">
-                    <div>{address.phone}</div>
-                    <div>{address.postalCode}</div>
+                    <div><i className="fas fa-phone"></i> {address.phone}</div>
+                    <div><i className="fas fa-map-marker-alt"></i> 〒{address.postalCode}</div>
                     <div>{address.city} {address.address}</div>
                   </div>
                   <div className="address-actions">
                     <button 
                       className="btn edit-address-btn" 
                       onClick={() => handleEditAddress(address)}
+                      title="編集"
                     >
-                      編集
-                    </button>
-                    <button 
-                      className="btn delete-address-btn" 
-                      onClick={() => handleDeleteAddress(address._id)}
-                    >
-                      削除
+                      <i className="fas fa-edit"></i> 編集
                     </button>
                     {!address.isDefault && (
                       <button 
                         className="btn btn-primary set-default-btn" 
                         onClick={() => handleSetDefaultAddress(address._id)}
+                        title="デフォルトに設定"
                       >
-                        デフォルトに設定
+                        <i className="fas fa-check-circle"></i> デフォルトに設定
+                      </button>
+                    )}
+                    <button 
+                      className="btn delete-address-btn" 
+                      onClick={() => handleDeleteAddress(address._id)}
+                      title="削除"
+                    >
+                      <i className="fas fa-trash-alt"></i> 削除
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="add-address-container">
+            <button 
+              className="btn btn-primary" 
+              id="add-address-btn"
+              onClick={handleAddAddress}
+            >
+              <i className="fas fa-plus"></i> 新しい住所を追加
+            </button>
+          </div>
+        </div>
+        
+        {/* Order History Section */}
+        <div className="orders-section">
+          <h3>注文履歴</h3>
+          
+          {ordersLoading ? (
+            <p>注文履歴を読み込み中...</p>
+          ) : orders.length === 0 ? (
+            <p>注文履歴がありません。</p>
+          ) : (
+            <div className="orders-list">
+              {orders.map(order => (
+                <div className="order-card" key={order._id}>
+                  <div className="order-header">
+                    <div className="order-id">注文番号: {order._id.substring(order._id.length - 8)}</div>
+                    <div className="order-date">
+                      {new Date(order.createdAt).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                    <div className={`order-status status-${order.status}`}>
+                      {getStatusText(order.status)}
+                    </div>
+                  </div>
+                  
+                  <div className="order-items">
+                    {order.items.map((item, index) => (
+                      <div className="order-item" key={index}>
+                        <div className="item-name">
+                          {item.product ? item.product.name : '商品情報なし'}
+                        </div>
+                        <div className="item-quantity">
+                          {item.quantity}点
+                        </div>
+                        <div className="item-price">
+                          {new Intl.NumberFormat('ja-JP', {
+                            style: 'currency',
+                            currency: 'JPY'
+                          }).format(item.price * item.quantity)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="order-footer">
+                    <div className="order-total">
+                      <span>合計:</span>
+                      <span>
+                        {new Intl.NumberFormat('ja-JP', {
+                          style: 'currency',
+                          currency: 'JPY'
+                        }).format(order.totalAmount)}
+                      </span>
+                    </div>
+                    
+                    <div className="order-payment">
+                      <span>支払い方法:</span>
+                      <span>{getPaymentMethodText(order.paymentMethod)}</span>
+                    </div>
+                    
+                    <div className="order-payment-status">
+                      <span>支払い状況:</span>
+                      <span className={`payment-status-${order.paymentStatus}`}>
+                        {getPaymentStatusText(order.paymentStatus)}
+                      </span>
+                    </div>
+                    
+                    {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                      <button 
+                        className="btn cancel-order-btn"
+                        onClick={() => handleCancelOrder(order._id)}
+                        disabled={order.status === 'shipped' || order.status === 'delivered'}
+                      >
+                        キャンセル
                       </button>
                     )}
                   </div>
@@ -260,14 +418,6 @@ const Account = () => {
               ))}
             </div>
           )}
-          
-          <button 
-            className="btn" 
-            id="add-address-btn"
-            onClick={handleAddAddress}
-          >
-            新しい住所を追加
-          </button>
         </div>
       </div>
       
@@ -362,6 +512,37 @@ const Account = () => {
       )}
     </section>
   );
+};
+
+// Helper functions for text display
+const getStatusText = (status) => {
+  const statusMap = {
+    'pending': '処理待ち',
+    'processing': '処理中',
+    'shipped': '発送済み',
+    'delivered': '配達済み',
+    'cancelled': 'キャンセル'
+  };
+  return statusMap[status] || status;
+};
+
+const getPaymentMethodText = (method) => {
+  const methodMap = {
+    'credit_card': 'クレジットカード',
+    'bank_transfer': '銀行振込',
+    'cash_on_delivery': '代金引換'
+  };
+  return methodMap[method] || method;
+};
+
+const getPaymentStatusText = (status) => {
+  const statusMap = {
+    'pending': '未払い',
+    'paid': '支払い済み',
+    'failed': '失敗',
+    'refunded': '返金済み'
+  };
+  return statusMap[status] || status;
 };
 
 export default Account;

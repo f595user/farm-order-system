@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アカウントコンポーネントテスト</title>
+  
+  <!-- Include CSS files -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/account.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Mock data for testing -->
+  <script type="text/babel">
+    // Mock orders data
+    const mockOrders = [
+      {
+        _id: '67d7e11e0d067de9e130b768',
+        status: 'pending',
+        paymentMethod: 'credit_card',
+        paymentStatus: 'pending',
+        totalAmount: 5000,
+        createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 days ago
+        items: [
+          {
+            product: { name: 'アスパラガス' },
+            quantity: 2,
+            price: 1500
+          },
+          {
+            product: { name: 'トマト' },
+            quantity: 1,
+            price: 2000
+          }
+        ]
+      },
+      {
+        _id: '67d7e11e0d067de9e130b76d',
+        status: 'processing',
+        paymentMethod: 'bank_transfer',
+        paymentStatus: 'paid',
+        totalAmount: 3500,
+        createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000), // 9 days ago
+        items: [
+          {
+            product: { name: 'じゃがいも' },
+            quantity: 3,
+            price: 800
+          },
+          {
+            product: { name: 'にんじん' },
+            quantity: 2,
+            price: 550
+          }
+        ]
+      },
+      {
+        _id: '67d7e11e0d067de9e130b772',
+        status: 'shipped',
+        paymentMethod: 'cash_on_delivery',
+        paymentStatus: 'pending',
+        totalAmount: 7200,
+        createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+        items: [
+          {
+            product: { name: 'りんご' },
+            quantity: 4,
+            price: 1200
+          },
+          {
+            product: { name: 'みかん' },
+            quantity: 2,
+            price: 1200
+          }
+        ]
+      },
+      {
+        _id: '67d7e11e0d067de9e130b777',
+        status: 'delivered',
+        paymentMethod: 'credit_card',
+        paymentStatus: 'paid',
+        totalAmount: 4500,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+        items: [
+          {
+            product: { name: 'ほうれん草' },
+            quantity: 2,
+            price: 900
+          },
+          {
+            product: { name: 'レタス' },
+            quantity: 1,
+            price: 700
+          },
+          {
+            product: { name: 'きゅうり' },
+            quantity: 3,
+            price: 600
+          }
+        ]
+      },
+      {
+        _id: '67d7e11e0d067de9e130b77c',
+        status: 'cancelled',
+        paymentMethod: 'bank_transfer',
+        paymentStatus: 'refunded',
+        totalAmount: 3000,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+        items: [
+          {
+            product: { name: 'なす' },
+            quantity: 2,
+            price: 800
+          },
+          {
+            product: { name: 'ピーマン' },
+            quantity: 1,
+            price: 600
+          },
+          {
+            product: { name: 'かぼちゃ' },
+            quantity: 1,
+            price: 800
+          }
+        ]
+      }
+    ];
+
+    // Mock user data
+    const mockUser = {
+      id: '67c5ae6b1981923d2154f347',
+      name: 'テストユーザー',
+      email: 'test@example.com',
+      addresses: [
+        {
+          _id: '67c5ae6b1981923d2154f348',
+          name: 'テストユーザー',
+          phone: '090-1234-5678',
+          postalCode: '123-4567',
+          city: '東京都',
+          address: '渋谷区渋谷1-1-1',
+          isDefault: true
+        }
+      ]
+    };
+
+    // Helper functions for text display
+    const getStatusText = (status) => {
+      const statusMap = {
+        'pending': '処理待ち',
+        'processing': '処理中',
+        'shipped': '発送済み',
+        'delivered': '配達済み',
+        'cancelled': 'キャンセル'
+      };
+      return statusMap[status] || status;
+    };
+
+    const getPaymentMethodText = (method) => {
+      const methodMap = {
+        'credit_card': 'クレジットカード',
+        'bank_transfer': '銀行振込',
+        'cash_on_delivery': '代金引換'
+      };
+      return methodMap[method] || method;
+    };
+
+    const getPaymentStatusText = (status) => {
+      const statusMap = {
+        'pending': '未払い',
+        'paid': '支払い済み',
+        'failed': '失敗',
+        'refunded': '返金済み'
+      };
+      return statusMap[status] || status;
+    };
+
+    // Simple Account component for testing
+    const Account = () => {
+      const [orders, setOrders] = React.useState(mockOrders);
+      const [loading, setLoading] = React.useState(false);
+      const [error, setError] = React.useState(null);
+      const [successMessage, setSuccessMessage] = React.useState('');
+
+      const handleCancelOrder = async (orderId) => {
+        if (!window.confirm('この注文をキャンセルしてもよろしいですか？')) {
+          return;
+        }
+        
+        try {
+          setLoading(true);
+          setError(null);
+          
+          // Update the order status in the mock data
+          const updatedOrders = orders.map(order => 
+            order._id === orderId 
+              ? { ...order, status: 'cancelled', paymentStatus: 'refunded' } 
+              : order
+          );
+          
+          setOrders(updatedOrders);
+          setSuccessMessage('注文をキャンセルしました。');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+          setError('注文のキャンセルに失敗しました。');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <section id="account">
+          <h2>アカウント情報</h2>
+          
+          {error && <div className="alert alert-error">{error}</div>}
+          {successMessage && <div className="alert alert-success">{successMessage}</div>}
+          
+          <div className="account-details">
+            <div className="profile-section">
+              <h3>プロフィール</h3>
+              <div className="profile-info">
+                <div><strong>名前:</strong> {mockUser.name}</div>
+                <div><strong>メールアドレス:</strong> {mockUser.email}</div>
+              </div>
+            </div>
+            
+            <div className="addresses-section">
+              <h3>配送先住所</h3>
+              
+              <div className="addresses-list">
+                {mockUser.addresses.map(address => (
+                  <div 
+                    className={`address-card${address.isDefault ? ' default' : ''}`}
+                    key={address._id}
+                  >
+                    {address.isDefault && <span className="default-badge">デフォルト</span>}
+                    <div className="address-name">{address.name}</div>
+                    <div className="address-details">
+                      <div>{address.phone}</div>
+                      <div>{address.postalCode}</div>
+                      <div>{address.city} {address.address}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Order History Section */}
+            <div className="orders-section">
+              <h3>注文履歴</h3>
+              
+              {loading ? (
+                <p>注文履歴を読み込み中...</p>
+              ) : orders.length === 0 ? (
+                <p>注文履歴がありません。</p>
+              ) : (
+                <div className="orders-list">
+                  {orders.map(order => (
+                    <div className="order-card" key={order._id}>
+                      <div className="order-header">
+                        <div className="order-id">注文番号: {order._id.substring(order._id.length - 8)}</div>
+                        <div className="order-date">
+                          {new Date(order.createdAt).toLocaleDateString('ja-JP', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
+                        <div className={`order-status status-${order.status}`}>
+                          {getStatusText(order.status)}
+                        </div>
+                      </div>
+                      
+                      <div className="order-items">
+                        {order.items.map((item, index) => (
+                          <div className="order-item" key={index}>
+                            <div className="item-name">
+                              {item.product ? item.product.name : '商品情報なし'}
+                            </div>
+                            <div className="item-quantity">
+                              {item.quantity}点
+                            </div>
+                            <div className="item-price">
+                              {new Intl.NumberFormat('ja-JP', {
+                                style: 'currency',
+                                currency: 'JPY'
+                              }).format(item.price * item.quantity)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="order-footer">
+                        <div className="order-total">
+                          <span>合計:</span>
+                          <span>
+                            {new Intl.NumberFormat('ja-JP', {
+                              style: 'currency',
+                              currency: 'JPY'
+                            }).format(order.totalAmount)}
+                          </span>
+                        </div>
+                        
+                        <div className="order-payment">
+                          <span>支払い方法:</span>
+                          <span>{getPaymentMethodText(order.paymentMethod)}</span>
+                        </div>
+                        
+                        <div className="order-payment-status">
+                          <span>支払い状況:</span>
+                          <span className={`payment-status-${order.paymentStatus}`}>
+                            {getPaymentStatusText(order.paymentStatus)}
+                          </span>
+                        </div>
+                        
+                        {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                          <button 
+                            className="btn cancel-order-btn"
+                            onClick={() => handleCancelOrder(order._id)}
+                            disabled={order.status === 'shipped' || order.status === 'delivered'}
+                          >
+                            キャンセル
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Render the component
+    ReactDOM.render(<Account />, document.getElementById('root'));
+  </script>
+</body>
+</html>

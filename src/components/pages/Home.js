@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import API from '../../utils/api';
 
 const Home = () => {
+  const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -73,11 +74,21 @@ const Home = () => {
       <div className="featured-categories">
         <h3>カテゴリー</h3>
         <div className="category-grid">
-          <div className="category-card" data-category="アスパラ">
+          <div 
+            className="category-card" 
+            data-category="アスパラ" 
+            onClick={() => navigate('/products?category=アスパラ')}
+            style={{ cursor: 'pointer' }}
+          >
             <img src="/images/アスパラ２" alt="アスパラ" />
             <h4>アスパラ</h4>
           </div>
-          <div className="category-card" data-category="はちみつ">
+          <div 
+            className="category-card" 
+            data-category="はちみつ" 
+            onClick={() => navigate('/products?category=はちみつ')}
+            style={{ cursor: 'pointer' }}
+          >
             <img src="/images/ハチミツ" alt="はちみつ" />
             <h4>はちみつ</h4>
           </div>
