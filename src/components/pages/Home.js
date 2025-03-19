@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import API from '../../utils/api';
 
@@ -53,6 +53,49 @@ const Home = () => {
       behavior: 'smooth'
     });
   };
+  
+  // Facebook SDK initialization
+  const fbRoot = useRef(null);
+  const fbPost = useRef(null);
+  
+  useEffect(() => {
+    // Load Facebook SDK
+    const loadFacebookSDK = () => {
+      // Check if SDK is already loaded
+      if (document.getElementById('facebook-jssdk')) return;
+      
+      window.fbAsyncInit = function() {
+        window.FB.init({
+          xfbml: true,
+          version: 'v18.0'
+        });
+        
+        // Parse XFBML after SDK is loaded
+        if (window.FB) {
+          window.FB.XFBML.parse(fbRoot.current);
+        }
+      };
+      
+      // Load the SDK asynchronously
+      const script = document.createElement('script');
+      script.id = 'facebook-jssdk';
+      script.src = 'https://connect.facebook.net/ja_JP/sdk.js';
+      script.async = true;
+      script.defer = true;
+      script.crossOrigin = 'anonymous';
+      document.body.appendChild(script);
+    };
+    
+    loadFacebookSDK();
+    
+    // Cleanup function
+    return () => {
+      const script = document.getElementById('facebook-jssdk');
+      if (script) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   return (
     <section id="home">
@@ -68,6 +111,34 @@ const Home = () => {
           >
             今すぐ購入
           </button>
+        </div>
+      </div>
+
+      <div className="location-info">
+        <h3>場所</h3>
+        <div className="location-container">
+          <div className="map-container">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2937.446919771797!2d141.4304133412501!3d42.58826047129259!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5f7515f85e11fa03%3A0x5e73fe847c86b9f6!2z44Ot44Oe44Oz44K56L6y5ZyS!5e0!3m2!1sja!2sjp!4v1729430750822!5m2!1sja!2sjp" 
+              width="600" 
+              height="450" 
+              style={{ border: 0 }} 
+              allowFullScreen="" 
+              loading="lazy" 
+              referrerPolicy="no-referrer-when-downgrade"
+              title="農園の場所"
+              className="google-map"
+            ></iframe>
+          </div>
+          <div className="location-details">
+            <h4>ロマンス農園</h4>
+            <p><i className="fas fa-map-marker-alt"></i> 〒059-1265 北海道苫小牧市樽前90</p>
+            <p><i className="fas fa-clock"></i> 営業時間: 10:00〜16:00（シーズン無休）</p>
+            <p><i className="fas fa-phone"></i> 0144-XX-XXXX</p>
+            <p><i className="fas fa-envelope"></i> info@example.com</p>
+            <p>北海道苫小牧市の自然豊かな環境で、こだわりの農産物を栽培しています。</p>
+            <p>ぜひお気軽にお立ち寄りください。</p>
+          </div>
         </div>
       </div>
 
@@ -154,6 +225,28 @@ const Home = () => {
           <Link to="/products" className="btn">
             すべての商品を見る <i className="fas fa-arrow-right"></i>
           </Link>
+        </div>
+      </div>
+
+      <div className="social-media">
+        <h3>SNS</h3>
+        <div className="facebook-container">
+          <div id="fb-root" ref={fbRoot}></div>
+          <div 
+            ref={fbPost}
+            className="fb-page" 
+            data-href="https://www.facebook.com/profile.php?id=100057231948484" 
+            data-tabs="timeline" 
+            data-width="600" 
+            data-height="800" 
+            data-small-header="false" 
+            data-adapt-container-width="true" 
+            data-hide-cover="false" 
+            data-show-facepile="true">
+            <blockquote cite="https://www.facebook.com/profile.php?id=100057231948484" className="fb-xfbml-parse-ignore">
+              <a href="https://www.facebook.com/profile.php?id=100057231948484">Facebook</a>
+            </blockquote>
+          </div>
         </div>
       </div>
     </section>
