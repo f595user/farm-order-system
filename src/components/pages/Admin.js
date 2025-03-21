@@ -9,6 +9,7 @@ import AdminOrders from './admin/AdminOrders';
 import AdminProducts from './admin/AdminProducts';
 import AdminUsers from './admin/AdminUsers';
 import AdminReports from './admin/AdminReports';
+import AdminAnnouncements from './admin/AdminAnnouncements';
 
 // Modals
 import OrderModal from './admin/modals/OrderModal';
@@ -19,6 +20,7 @@ import UpdateStatusModal from './admin/modals/UpdateStatusModal';
 import UpdatePaymentModal from './admin/modals/UpdatePaymentModal';
 import UpdateShippingModal from './admin/modals/UpdateShippingModal';
 import ShippingEstimateModal from './admin/modals/ShippingEstimateModal';
+import AnnouncementModal from './admin/modals/AnnouncementModal';
 
 const Admin = () => {
   const { isAdmin } = useAuth();
@@ -27,6 +29,7 @@ const Admin = () => {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [salesReport, setSalesReport] = useState(null);
   const [productReport, setProductReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +45,7 @@ const Admin = () => {
   const [showUpdatePaymentModal, setShowUpdatePaymentModal] = useState(false);
   const [showUpdateShippingModal, setShowUpdateShippingModal] = useState(false);
   const [showShippingEstimateModal, setShowShippingEstimateModal] = useState(false);
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   
   // Filter states
   const [orderFilters, setOrderFilters] = useState({
@@ -141,6 +145,9 @@ const Admin = () => {
           const productData = await API.admin.getProductReport();
           setSalesReport(salesData);
           setProductReport(productData);
+        } else if (activeTab === 'announcements') {
+          const data = await API.announcements.getAll();
+          setAnnouncements(data);
         }
       } catch (err) {
         console.error('Error fetching admin data:', err);
@@ -323,6 +330,39 @@ const Admin = () => {
   const handleChangeSalesReportPeriod = (period) => {
     setReportPeriod(period);
   };
+  
+  const handleSaveAnnouncement = async (announcementData) => {
+    try {
+      if (selectedItem) {
+        // Update existing announcement
+        await API.announcements.update(selectedItem._id, announcementData);
+      } else {
+        // Create new announcement
+        await API.announcements.create(announcementData);
+      }
+      
+      // Refresh announcements data
+      const data = await API.announcements.getAll();
+      setAnnouncements(data);
+      setShowAnnouncementModal(false);
+    } catch (error) {
+      console.error('Save announcement error:', error);
+      alert(`お知らせの保存に失敗しました: ${error.message}`);
+    }
+  };
+  
+  const handleDeleteAnnouncement = async (announcementId) => {
+    try {
+      await API.announcements.delete(announcementId);
+      
+      // Refresh announcements data
+      const data = await API.announcements.getAll();
+      setAnnouncements(data);
+    } catch (error) {
+      console.error('Delete announcement error:', error);
+      alert(`お知らせの削除に失敗しました: ${error.message}`);
+    }
+  };
 
   // Redirect if not admin
   if (!isAdmin()) {
@@ -357,6 +397,12 @@ const Admin = () => {
           onClick={() => handleTabChange('users')}
         >
           ユーザー管理
+        </button>
+        <button 
+          className={`admin-tab-btn ${activeTab === 'announcements' ? 'active' : ''}`} 
+          onClick={() => handleTabChange('announcements')}
+        >
+          投稿管理
         </button>
         <button 
           className={`admin-tab-btn ${activeTab === 'reports' ? 'active' : ''}`} 
@@ -428,6 +474,22 @@ const Admin = () => {
                 users={users}
                 onViewUserDetails={handleViewUserDetails}
                 onChangeUserRole={handleChangeUserRole}
+              />
+            </div>
+            
+            <div className={`admin-tab-panel ${activeTab === 'announcements' ? 'active' : ''}`}>
+              <AdminAnnouncements 
+                announcements={announcements}
+                onAddAnnouncement={() => {
+                  setSelectedItem(null);
+                  setShowAnnouncementModal(true);
+                }}
+                onEditAnnouncement={(announcementId) => {
+                  const announcement = announcements.find(a => a._id === announcementId);
+                  setSelectedItem(announcement);
+                  setShowAnnouncementModal(true);
+                }}
+                onDeleteAnnouncement={handleDeleteAnnouncement}
               />
             </div>
             
@@ -521,6 +583,14 @@ const Admin = () => {
           product={selectedItem}
           onClose={() => setShowShippingEstimateModal(false)}
           onUpdateShippingEstimate={handleUpdateProductShippingEstimate}
+        />
+      )}
+      
+      {showAnnouncementModal && (
+        <AnnouncementModal
+          announcement={selectedItem}
+          onClose={() => setShowAnnouncementModal(false)}
+          onSave={handleSaveAnnouncement}
         />
       )}
     </section>

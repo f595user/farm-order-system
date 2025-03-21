@@ -5,6 +5,7 @@ import API from '../../utils/api';
 const Home = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -43,9 +44,21 @@ const Home = () => {
     }
   }, [productsCache, cacheTimestamp, cacheDuration]);
 
+  // Fetch announcements
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      const data = await API.announcements.getAll(3); // Limit to 3 announcements
+      setAnnouncements(data);
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
+      // Don't set error state here to avoid blocking the entire page
+    }
+  }, []);
+
   useEffect(() => {
     fetchFeaturedProducts();
-  }, [fetchFeaturedProducts]);
+    fetchAnnouncements();
+  }, [fetchFeaturedProducts, fetchAnnouncements]);
 
   const handleShopNow = () => {
     window.scrollTo({
@@ -123,6 +136,41 @@ const Home = () => {
           >
             今すぐ購入
           </button>
+        </div>
+      </div>
+
+      <div className="announcements">
+        <h3>お知らせ</h3>
+        <div className="announcements-container">
+          {announcements.length > 0 ? (
+            <div className="announcements-list">
+              {announcements.map(announcement => {
+                // Format date
+                const postDate = new Date(announcement.postDate);
+                const formattedDate = postDate.toLocaleDateString('ja-JP', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                });
+                
+                return (
+                  <div className="announcement-card" key={announcement._id}>
+                    <div className="announcement-header">
+                      <h4 className="announcement-title">{announcement.title}</h4>
+                      <div className="announcement-date">{formattedDate}</div>
+                    </div>
+                    <div className="announcement-content">
+                      {announcement.content}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="no-announcements">
+              <p>現在投稿はありません。</p>
+            </div>
+          )}
         </div>
       </div>
 

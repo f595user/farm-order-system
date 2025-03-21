@@ -33,17 +33,79 @@
 .featured-categories,
 .featured-products,
 .location-info,
-.social-media {
+.social-media,
+.announcements {
   margin-bottom: 40px;
 }
 
 .featured-categories h3,
 .featured-products h3,
 .location-info h3,
-.social-media h3 {
+.social-media h3,
+.announcements h3 {
   font-size: 24px;
   margin-bottom: 20px;
   text-align: center;
+}
+
+/* Announcements Section */
+.announcements-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.announcement-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.announcement-card:hover {
+  transform: translateY(-3px);
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.announcement-title {
+  font-size: 18px;
+  color: var(--primary-color);
+  margin: 0;
+  flex: 1;
+}
+
+.announcement-date {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-left: 15px;
+}
+
+.announcement-content {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-color);
+  white-space: pre-line;
+}
+
+.no-announcements {
+  text-align: center;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: var(--border-radius);
+  color: var(--text-light);
 }
 
 /* Product Info */

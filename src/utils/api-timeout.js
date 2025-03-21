@@ -434,6 +434,86 @@ const EnhancedAPI = {
     }
   },
 
+  // Announcements endpoints
+  announcements: {
+    /**
+     * Get all announcements
+     * @param {number} limit - Optional limit for number of announcements to return
+     * @param {boolean} useCache - Whether to use cache (default: true)
+     * @returns {Promise} - Promise with response data
+     */
+    async getAll(limit, useCache = true) {
+      const queryParams = new URLSearchParams();
+      
+      if (limit) {
+        queryParams.append('limit', limit);
+      }
+      
+      const queryString = queryParams.toString();
+      const endpoint = `/announcements${queryString ? `?${queryString}` : ''}`;
+      
+      return EnhancedAPI.getCached(endpoint, {
+        useCache,
+        cacheTTL: 5 * 60 * 1000 // Cache announcements for 5 minutes
+      });
+    },
+
+    /**
+     * Get an announcement by ID
+     * @param {string} id - Announcement ID
+     * @param {boolean} useCache - Whether to use cache (default: true)
+     * @returns {Promise} - Promise with response data
+     */
+    async getById(id, useCache = true) {
+      if (!id) {
+        console.error('Announcement ID is undefined or null');
+        return Promise.reject(new Error('Announcement ID is required'));
+      }
+      
+      const endpoint = `/announcements/${id}`;
+      return EnhancedAPI.getCached(endpoint, {
+        useCache,
+        cacheTTL: 5 * 60 * 1000 // Cache announcement details for 5 minutes
+      });
+    },
+
+    /**
+     * Create a new announcement
+     * @param {Object} announcementData - Announcement data
+     * @returns {Promise} - Promise with response data
+     */
+    create(announcementData) {
+      // Clear announcements cache when creating a new announcement
+      EnhancedAPI.clearCacheForEndpoint('/announcements');
+      return EnhancedAPI.post('/announcements', announcementData);
+    },
+
+    /**
+     * Update an announcement
+     * @param {string} id - Announcement ID
+     * @param {Object} announcementData - Announcement data to update
+     * @returns {Promise} - Promise with response data
+     */
+    update(id, announcementData) {
+      // Clear announcements cache when updating an announcement
+      EnhancedAPI.clearCacheForEndpoint('/announcements');
+      EnhancedAPI.clearCacheForEndpoint(`/announcements/${id}`);
+      return EnhancedAPI.put(`/announcements/${id}`, announcementData);
+    },
+
+    /**
+     * Delete an announcement
+     * @param {string} id - Announcement ID
+     * @returns {Promise} - Promise with response data
+     */
+    delete(id) {
+      // Clear announcements cache when deleting an announcement
+      EnhancedAPI.clearCacheForEndpoint('/announcements');
+      EnhancedAPI.clearCacheForEndpoint(`/announcements/${id}`);
+      return EnhancedAPI.delete(`/announcements/${id}`);
+    }
+  },
+
   // Admin endpoints
   admin: {
     /**

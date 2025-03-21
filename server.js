@@ -95,6 +95,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/shipping', require('./routes/shipping'));
+app.use('/api/announcements', require('./routes/announcements'));
 
 // Catch-all route to handle client-side routing
 app.get('*', (req, res) => {
