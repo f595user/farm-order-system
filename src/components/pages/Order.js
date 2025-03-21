@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../utils/api';
+import { calculateShippingCost, calculateTotalWeight } from '../../utils/shippingCalculator';
 
 // Import components
 import ProductCategory from '../order/ProductCategory';
@@ -29,6 +30,7 @@ const Order = () => {
   const [showPaymentSelection, setShowPaymentSelection] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('credit_card');
   const [currentStep, setCurrentStep] = useState(0); // 0: Initial, 1: Sender, 2: Payment, 3: Confirmation
+  const [shippingCosts, setShippingCosts] = useState({}); // Store shipping costs per destination
   
   // Sender information state
   const [senderInfo, setSenderInfo] = useState({
@@ -145,6 +147,21 @@ const Order = () => {
     }
   }, [loading]); // Only depend on loading state
 
+  // Effect to update shipping costs when destinations or products change
+  useEffect(() => {
+    const updateAllShippingCosts = async () => {
+      for (const destination of destinations) {
+        if (destination.city) {
+          await updateShippingCost(destination.id, destination);
+        }
+      }
+    };
+    
+    if (products.length > 0 && destinations.length > 0) {
+      updateAllShippingCosts();
+    }
+  }, [products, destinations]);
+
   const prefillAddressFromUser = () => {
     if (!currentUser || !currentUser.addresses || currentUser.addresses.length === 0) {
       return;
@@ -185,10 +202,19 @@ const Order = () => {
             [productId]: newQuantity
           };
           console.log('Updated products:', updatedProducts);
-          return {
+          
+          // Update shipping cost for this destination after quantity change
+          const updatedDestination = {
             ...destination,
             products: updatedProducts
           };
+          
+          // Schedule shipping cost update
+          if (updatedDestination.city) {
+            setTimeout(() => updateShippingCost(destinationId, updatedDestination), 0);
+          }
+          
+          return updatedDestination;
         }
         return destination;
       });
@@ -201,14 +227,73 @@ const Order = () => {
     setDestinations(prevDestinations => {
       return prevDestinations.map(destination => {
         if (destination.id === destinationId) {
-          return {
+          const updatedDestination = {
             ...destination,
             [field]: value
           };
+          
+          // If prefecture (city) changed, schedule shipping cost update
+          if (field === 'city' && value) {
+            setTimeout(() => updateShippingCost(destinationId, updatedDestination), 0);
+          }
+          
+          return updatedDestination;
         }
         return destination;
       });
     });
+  };
+  
+  // Update shipping cost for a destination
+  const updateShippingCost = async (destinationId, destination) => {
+    try {
+      // Validate inputs
+      if (!destination || !destination.city || !destination.products) {
+        console.error(`Invalid destination data for ID ${destinationId}:`, destination);
+        return;
+      }
+      
+      // Calculate total weight for this destination
+      const totalWeight = calculateTotalWeight(products, destination.products);
+      
+      console.log(`Calculating shipping for destination ${destinationId}:`);
+      console.log(`- Prefecture: ${destination.city}`);
+      console.log(`- Total weight: ${totalWeight}kg`);
+      
+      // Get shipping cost based on weight and prefecture
+      const cost = await calculateShippingCost(totalWeight, destination.city);
+      console.log(`- Calculated shipping cost: ¥${cost}`);
+      
+      // Ensure cost is a valid number
+      const validCost = typeof cost === 'number' && !isNaN(cost) ? cost : 500;
+      
+      console.log(`- Final shipping cost to use: ¥${validCost}`);
+      
+      // Update shipping costs state
+      setShippingCosts(prev => {
+        const updated = {
+          ...prev,
+          [destinationId]: validCost
+        };
+        console.log('- Updated shipping costs:', updated);
+        
+        // Force a re-render by creating a new object
+        setTimeout(() => {
+          console.log('Forcing re-render with shipping costs:', updated);
+          setShippingCosts({...updated});
+        }, 100);
+        
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error calculating shipping cost:', error);
+      console.error('Error details:', error.message);
+      // Set default cost on error
+      setShippingCosts(prev => ({
+        ...prev,
+        [destinationId]: 500
+      }));
+    }
   };
 
   const handleAddDestination = () => {
@@ -246,6 +331,13 @@ const Order = () => {
     setDestinations(prevDestinations => 
       prevDestinations.filter(destination => destination.id !== destinationId)
     );
+    
+    // Remove shipping cost for this destination
+    setShippingCosts(prev => {
+      const updated = { ...prev };
+      delete updated[destinationId];
+      return updated;
+    });
   };
 
   const handlePostalLookup = async (destinationId, postalCode) => {
@@ -276,12 +368,17 @@ const Order = () => {
       setDestinations(prevDestinations => {
         return prevDestinations.map(destination => {
           if (destination.id === destinationId) {
-            return {
+            const updatedDestination = {
               ...destination,
               postalCode: formattedPostalCode,
               city: result.address1, // Prefecture
               address: `${result.address2}${result.address3}` // City + Street
             };
+            
+            // Schedule shipping cost update
+            setTimeout(() => updateShippingCost(destinationId, updatedDestination), 0);
+            
+            return updatedDestination;
           }
           return destination;
         });
@@ -464,11 +561,19 @@ const Order = () => {
   const calculateTotals = () => {
     let totalItems = 0;
     let subtotal = 0;
-    const shipping = 500; // Fixed shipping cost per destination
+    let totalShipping = 0;
     
     // Check if any products are selected
     let hasProducts = false;
     let destinationsWithProducts = 0;
+    
+    console.log('Calculating totals with shipping costs:', shippingCosts);
+    
+    // Create a copy of shipping costs to ensure it's a new object
+    const shippingCostsCopy = { ...shippingCosts };
+    
+    console.log('DEBUG: Original shippingCosts:', shippingCosts);
+    console.log('DEBUG: ShippingCosts copy:', shippingCostsCopy);
     
     destinations.forEach(destination => {
       let destinationHasProducts = false;
@@ -488,20 +593,35 @@ const Order = () => {
       
       if (destinationHasProducts) {
         destinationsWithProducts++;
+        
+        // Add shipping cost for this destination
+        const destinationShipping = shippingCosts[destination.id] || 500; // Default to 500 if not calculated yet
+        console.log(`Destination #${destination.id} (${destination.city}) shipping cost: ¥${destinationShipping}`);
+        totalShipping += destinationShipping;
+        
+        // Ensure the shipping cost is set in the copy
+        shippingCostsCopy[destination.id] = destinationShipping;
+        
+        console.log(`DEBUG: Setting shipping cost for destination ${destination.id} to ${destinationShipping}`);
       }
     });
     
     // Calculate total with shipping
-    const total = subtotal + (shipping * destinationsWithProducts);
+    const total = subtotal + totalShipping;
     
-    return {
+    const result = {
       totalItems,
       subtotal,
-      shipping,
+      shipping: totalShipping,
       total,
       hasProducts,
-      destinationsWithProducts
+      destinationsWithProducts,
+      shippingCosts: shippingCostsCopy // Include shipping costs per destination
     };
+    
+    console.log('Final totals:', result);
+    
+    return result;
   };
 
   if (loading && products.length === 0) {

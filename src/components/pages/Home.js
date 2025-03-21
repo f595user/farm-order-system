@@ -57,39 +57,94 @@ const Home = () => {
   // Facebook SDK initialization
   const fbRoot = useRef(null);
   const fbPost = useRef(null);
+  const [fbSDKLoaded, setFbSDKLoaded] = useState(false);
+  const [fbSDKError, setFbSDKError] = useState(false);
   
   useEffect(() => {
     // Load Facebook SDK
     const loadFacebookSDK = () => {
       // Check if SDK is already loaded
-      if (document.getElementById('facebook-jssdk')) return;
+      if (document.getElementById('facebook-jssdk')) {
+        setFbSDKLoaded(true);
+        return;
+      }
+      
+      // Create a global error handler to catch Facebook SDK errors
+      window.onerror = function(message, source, lineno, colno, error) {
+        // Only handle Facebook-related errors
+        if (source && source.includes('facebook') || 
+            message && (message.includes('FB') || message.includes('facebook'))) {
+          console.log('Caught Facebook SDK error:', message);
+          // Prevent the error from bubbling up
+          return true;
+        }
+        // Let other errors propagate normally
+        return false;
+      };
       
       window.fbAsyncInit = function() {
-        window.FB.init({
-          xfbml: true,
-          version: 'v18.0'
-        });
-        
-        // Parse XFBML after SDK is loaded
-        if (window.FB) {
-          window.FB.XFBML.parse(fbRoot.current);
+        try {
+          window.FB.init({
+            xfbml: true, // Enable auto-parse on init
+            version: 'v18.0'
+          });
+          
+          // Set a timeout to ensure DOM is fully ready before parsing
+          setTimeout(() => {
+            try {
+              // Only parse if the element exists
+              if (fbRoot.current && window.FB) {
+                // Parse the entire document to ensure all FB elements are processed
+                window.FB.XFBML.parse();
+                
+                // Also try to directly parse the fb-page element if it exists
+                const fbPageElement = document.querySelector('.fb-page');
+                if (fbPageElement) {
+                  window.FB.XFBML.parse(fbPageElement.parentNode);
+                }
+                setFbSDKLoaded(true);
+              }
+            } catch (err) {
+              console.log('Error parsing XFBML:', err);
+              setFbSDKError(true);
+            }
+          }, 1500); // Increased timeout to ensure DOM is ready
+        } catch (err) {
+          console.log('Error initializing FB SDK:', err);
+          setFbSDKError(true);
         }
       };
       
       // Load the SDK asynchronously
-      const script = document.createElement('script');
-      script.id = 'facebook-jssdk';
-      script.src = 'https://connect.facebook.net/ja_JP/sdk.js';
-      script.async = true;
-      script.defer = true;
-      script.crossOrigin = 'anonymous';
-      document.body.appendChild(script);
+      try {
+        const script = document.createElement('script');
+        script.id = 'facebook-jssdk';
+        script.src = 'https://connect.facebook.net/ja_JP/sdk.js';
+        script.async = true;
+        script.defer = true;
+        script.crossOrigin = 'anonymous';
+        
+        // Add error handling for the script
+        script.onerror = () => {
+          console.log('Failed to load Facebook SDK');
+          setFbSDKError(true);
+        };
+        
+        document.body.appendChild(script);
+      } catch (err) {
+        console.log('Error loading Facebook SDK script:', err);
+        setFbSDKError(true);
+      }
     };
     
     loadFacebookSDK();
     
     // Cleanup function
     return () => {
+      // Remove global error handler
+      window.onerror = null;
+      
+      // Remove script if it exists
       const script = document.getElementById('facebook-jssdk');
       if (script) {
         document.body.removeChild(script);
@@ -230,23 +285,42 @@ const Home = () => {
 
       <div className="social-media">
         <h3>SNS</h3>
+        {/* Facebook root element - must be outside the container */}
+        <div id="fb-root" ref={fbRoot}></div>
+        
         <div className="facebook-container">
-          <div id="fb-root" ref={fbRoot}></div>
-          <div 
-            ref={fbPost}
-            className="fb-page" 
-            data-href="https://www.facebook.com/profile.php?id=100057231948484" 
-            data-tabs="timeline" 
-            data-width="600" 
-            data-height="800" 
-            data-small-header="false" 
-            data-adapt-container-width="true" 
-            data-hide-cover="false" 
-            data-show-facepile="true">
-            <blockquote cite="https://www.facebook.com/profile.php?id=100057231948484" className="fb-xfbml-parse-ignore">
-              <a href="https://www.facebook.com/profile.php?id=100057231948484">Facebook</a>
-            </blockquote>
-          </div>
+          {fbSDKError ? (
+            <div className="facebook-fallback">
+              <h4>Facebook タイムラインを表示できません</h4>
+              <p>代わりに、<a 
+                href="https://www.facebook.com/profile.php?id=100057231948484"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Facebook ページ
+              </a>を直接ご覧ください。</p>
+            </div>
+          ) : !fbSDKLoaded ? (
+            <div className="facebook-loading">
+              <p>Facebook タイムラインを読み込み中...</p>
+            </div>
+          ) : (
+            <div 
+              ref={fbPost}
+              className="fb-page" 
+              data-href="https://www.facebook.com/profile.php?id=100057231948484" 
+              data-tabs="timeline" 
+              data-width="600" 
+              data-height="800" 
+              data-small-header="false" 
+              data-adapt-container-width="true" 
+              data-hide-cover="false" 
+              data-show-facepile="true">
+              <blockquote cite="https://www.facebook.com/profile.php?id=100057231948484" className="fb-xfbml-parse-ignore">
+                <a href="https://www.facebook.com/profile.php?id=100057231948484">Facebook</a>
+              </blockquote>
+            </div>
+          )}
         </div>
       </div>
     </section>

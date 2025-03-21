@@ -203,12 +203,34 @@
 }
 
 .fb-post,
-.fb-page {
+.fb-page,
+.facebook-fallback,
+.facebook-loading {
   max-width: 100%;
   margin: 0 auto;
   background-color: var(--white);
   border-radius: var(--border-radius);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+.facebook-fallback h4 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.facebook-fallback a {
+  color: var(--primary-color);
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.facebook-loading {
+  padding: 40px 20px;
+  color: var(--text-light);
 }
 
 .fb-page {
@@ -216,6 +238,7 @@
   width: 100%;
   max-width: 600px;
   overflow: hidden;
+  padding: 0; /* Reset padding for the actual FB page */
 }
 
 .fb-page iframe {

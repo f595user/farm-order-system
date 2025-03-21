@@ -25,6 +25,12 @@ const ProductSchema = new mongoose.Schema({
     required: true,
     default: 'kg'
   },
+  weight: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 1  // Default weight in kg
+  },
   category: {
     type: String,
     required: true,

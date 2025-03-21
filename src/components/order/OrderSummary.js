@@ -77,7 +77,15 @@ const OrderSummary = ({
                       {new Intl.NumberFormat('ja-JP', {
                         style: 'currency',
                         currency: 'JPY'
-                      }).format(totals.shipping)}
+                      }).format(totals.shippingCosts && totals.shippingCosts[destination.id] !== undefined 
+                        ? totals.shippingCosts[destination.id] 
+                        : 500)}
+                      <span style={{ fontSize: '0.8em', marginLeft: '5px' }}>
+                        (ID: {destination.id}, 都道府県: {destination.city || '未設定'})
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.8em', color: '#666', marginTop: '5px' }}>
+                      デバッグ: shippingCosts={JSON.stringify(totals.shippingCosts || {})}
                     </div>
                   </div>
                 </div>
