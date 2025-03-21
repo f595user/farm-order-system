@@ -194,16 +194,22 @@
 }
 
 /* Social Media Section */
-.facebook-container {
+.social-media {
   display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  width: 100%;
-  overflow: hidden;
+  flex-direction: column;
+  align-items: center;
 }
 
-.fb-post,
-.fb-page,
+.facebook-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  width: 100%;
+  overflow: visible;
+  min-height: 700px; /* Ensure enough space for the timeline */
+}
+
 .facebook-fallback,
 .facebook-loading {
   max-width: 100%;
@@ -214,7 +220,7 @@
   padding: 20px;
   text-align: center;
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
 }
 
 .facebook-fallback h4 {
@@ -233,16 +239,39 @@
   color: var(--text-light);
 }
 
+/* Facebook plugin styles */
 .fb-page {
-  display: block;
-  width: 100%;
-  max-width: 600px;
-  overflow: hidden;
-  padding: 0; /* Reset padding for the actual FB page */
+  display: none !important; /* Hide the standard plugin initially */
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  background-color: transparent !important;
+  border-radius: var(--border-radius);
+  overflow: visible !important;
 }
 
-.fb-page iframe {
+/* Style for Facebook's generated iframe */
+.fb_iframe_widget,
+.fb_iframe_widget span,
+.fb_iframe_widget iframe {
+  width: 100% !important;
+  min-width: 300px !important;
+}
+
+/* Direct iframe container */
+.facebook-iframe-container {
   width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* If the standard FB plugin loads successfully, hide the iframe */
+.fb_iframe_widget_fluid_desktop + .facebook-iframe-container {
+  display: none;
 }
 
 @media (max-width: 576px) {

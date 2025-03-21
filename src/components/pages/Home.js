@@ -55,100 +55,57 @@ const Home = () => {
   };
   
   // Facebook SDK initialization
-  const fbRoot = useRef(null);
-  const fbPost = useRef(null);
-  const [fbSDKLoaded, setFbSDKLoaded] = useState(false);
   const [fbSDKError, setFbSDKError] = useState(false);
+  const fbInitialized = useRef(false);
   
   useEffect(() => {
-    // Load Facebook SDK
-    const loadFacebookSDK = () => {
-      // Check if SDK is already loaded
-      if (document.getElementById('facebook-jssdk')) {
-        setFbSDKLoaded(true);
-        return;
+    // Simple error handler for Facebook SDK
+    const originalOnError = window.onerror;
+    window.onerror = function(message, source, lineno, colno, error) {
+      if ((source && source.includes('facebook')) || 
+          (message && (message.includes('FB') || message.includes('facebook')))) {
+        console.log('Suppressing Facebook error:', message);
+        return true;
       }
-      
-      // Create a global error handler to catch Facebook SDK errors
-      window.onerror = function(message, source, lineno, colno, error) {
-        // Only handle Facebook-related errors
-        if (source && source.includes('facebook') || 
-            message && (message.includes('FB') || message.includes('facebook'))) {
-          console.log('Caught Facebook SDK error:', message);
-          // Prevent the error from bubbling up
-          return true;
-        }
-        // Let other errors propagate normally
-        return false;
-      };
-      
-      window.fbAsyncInit = function() {
-        try {
-          window.FB.init({
-            xfbml: true, // Enable auto-parse on init
-            version: 'v18.0'
-          });
-          
-          // Set a timeout to ensure DOM is fully ready before parsing
-          setTimeout(() => {
-            try {
-              // Only parse if the element exists
-              if (fbRoot.current && window.FB) {
-                // Parse the entire document to ensure all FB elements are processed
-                window.FB.XFBML.parse();
-                
-                // Also try to directly parse the fb-page element if it exists
-                const fbPageElement = document.querySelector('.fb-page');
-                if (fbPageElement) {
-                  window.FB.XFBML.parse(fbPageElement.parentNode);
-                }
-                setFbSDKLoaded(true);
-              }
-            } catch (err) {
-              console.log('Error parsing XFBML:', err);
-              setFbSDKError(true);
-            }
-          }, 1500); // Increased timeout to ensure DOM is ready
-        } catch (err) {
-          console.log('Error initializing FB SDK:', err);
-          setFbSDKError(true);
-        }
-      };
-      
-      // Load the SDK asynchronously
-      try {
-        const script = document.createElement('script');
-        script.id = 'facebook-jssdk';
-        script.src = 'https://connect.facebook.net/ja_JP/sdk.js';
-        script.async = true;
-        script.defer = true;
-        script.crossOrigin = 'anonymous';
-        
-        // Add error handling for the script
-        script.onerror = () => {
-          console.log('Failed to load Facebook SDK');
-          setFbSDKError(true);
-        };
-        
-        document.body.appendChild(script);
-      } catch (err) {
-        console.log('Error loading Facebook SDK script:', err);
-        setFbSDKError(true);
+      return originalOnError ? originalOnError(message, source, lineno, colno, error) : false;
+    };
+    
+    // Function to manually parse Facebook elements
+    const parseFacebookElements = () => {
+      if (window.FB && !fbInitialized.current) {
+        console.log('Manually parsing Facebook elements');
+        window.FB.XFBML.parse();
+        fbInitialized.current = true;
       }
     };
     
-    loadFacebookSDK();
+    // Load the Facebook SDK script directly
+    const script = document.createElement('script');
+    script.id = 'facebook-jssdk';
+    script.src = 'https://connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v18.0&appId=';
+    script.async = true;
+    script.defer = true;
+    script.crossOrigin = 'anonymous';
+    script.onerror = () => setFbSDKError(true);
+    script.onload = () => {
+      // Try parsing after script loads
+      setTimeout(parseFacebookElements, 1000);
+    };
+    
+    // Insert the script at the beginning of the body
+    document.body.insertBefore(script, document.body.firstChild);
+    
+    // Also try parsing after component mounts completely
+    setTimeout(parseFacebookElements, 2000);
     
     // Cleanup function
     return () => {
-      // Remove global error handler
-      window.onerror = null;
-      
-      // Remove script if it exists
-      const script = document.getElementById('facebook-jssdk');
-      if (script) {
-        document.body.removeChild(script);
+      window.onerror = originalOnError;
+      const fbScript = document.getElementById('facebook-jssdk');
+      if (fbScript) {
+        document.body.removeChild(fbScript);
       }
+      fbInitialized.current = false;
     };
   }, []);
 
@@ -285,8 +242,9 @@ const Home = () => {
 
       <div className="social-media">
         <h3>SNS</h3>
-        {/* Facebook root element - must be outside the container */}
-        <div id="fb-root" ref={fbRoot}></div>
+        
+        {/* Facebook root div - required for FB SDK */}
+        <div id="fb-root"></div>
         
         <div className="facebook-container">
           {fbSDKError ? (
@@ -300,26 +258,45 @@ const Home = () => {
                 Facebook ページ
               </a>を直接ご覧ください。</p>
             </div>
-          ) : !fbSDKLoaded ? (
-            <div className="facebook-loading">
-              <p>Facebook タイムラインを読み込み中...</p>
-            </div>
           ) : (
-            <div 
-              ref={fbPost}
-              className="fb-page" 
-              data-href="https://www.facebook.com/profile.php?id=100057231948484" 
-              data-tabs="timeline" 
-              data-width="600" 
-              data-height="800" 
-              data-small-header="false" 
-              data-adapt-container-width="true" 
-              data-hide-cover="false" 
-              data-show-facepile="true">
-              <blockquote cite="https://www.facebook.com/profile.php?id=100057231948484" className="fb-xfbml-parse-ignore">
-                <a href="https://www.facebook.com/profile.php?id=100057231948484">Facebook</a>
-              </blockquote>
-            </div>
+            <>
+              {/* Try both approaches: standard FB plugin and direct iframe */}
+              <div 
+                className="fb-page" 
+                data-href="https://www.facebook.com/profile.php?id=100057231948484" 
+                data-tabs="timeline"
+                data-width="500" 
+                data-height="700" 
+                data-small-header="false" 
+                data-adapt-container-width="true" 
+                data-hide-cover="false" 
+                data-show-facepile="true">
+                <blockquote cite="https://www.facebook.com/profile.php?id=100057231948484" className="fb-xfbml-parse-ignore">
+                  <a href="https://www.facebook.com/profile.php?id=100057231948484">Facebook</a>
+                </blockquote>
+              </div>
+              
+              {/* Direct iframe embed as fallback */}
+              <div className="facebook-iframe-container">
+                <iframe 
+                  src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D100057231948484&tabs=timeline&width=500&height=700&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true" 
+                  width="500" 
+                  height="700" 
+                  style={{ 
+                    border: 'none', 
+                    overflow: 'hidden',
+                    display: 'block',
+                    margin: '0 auto',
+                    maxWidth: '100%'
+                  }} 
+                  scrolling="no" 
+                  frameBorder="0" 
+                  allowFullScreen={true} 
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  title="Facebook Timeline"
+                ></iframe>
+              </div>
+            </>
           )}
         </div>
       </div>
