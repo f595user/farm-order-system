@@ -60,8 +60,15 @@ router.post('/calculate', async (req, res) => {
         continue;
       }
       
-      console.log(`[API] Product ${product.name} weight: ${product.weight}kg x ${quantity}`);
-      totalWeight += product.weight * quantity;
+      // Convert weight to kg if unit is 'g'
+      let weightInKg = product.weight;
+      if (product.unit === 'g') {
+        weightInKg = product.weight / 1000;
+        console.log(`[API] Converting ${product.weight}g to ${weightInKg}kg for product ${product.name}`);
+      }
+      
+      console.log(`[API] Product ${product.name} weight: ${weightInKg}kg (original: ${product.weight}${product.unit}) x ${quantity}`);
+      totalWeight += weightInKg * quantity;
     }
     
     console.log(`[API] Total weight: ${totalWeight}kg, Prefecture: ${prefecture}`);

@@ -1,56 +1,72 @@
 /**
- * Script to update existing products with weight information
- * This is needed after adding the weight field to the Product model
+ * Script to update product weights to match their units
+ * This script corrects the weight values for products with 'g' and 'kg' units
  */
 
 const mongoose = require('mongoose');
-require('dotenv').config();
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1);
-});
-
-// Import Product model
 const Product = require('./models/Product');
 
-// Default weights by category (in kg)
-const defaultWeights = {
-  'アスパラ': 1.5,  // Asparagus typically weighs around 1.5kg per bundle
-  'はちみつ': 0.5   // Honey typically weighs around 0.5kg per jar
-};
-
-async function updateProductWeights() {
-  try {
-    // Get all products
-    const products = await Product.find({});
-    console.log(`Found ${products.length} products to update`);
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/farm_order_system')
+  .then(async () => {
+    console.log('Connected to MongoDB');
     
-    // Update each product with a weight based on category
-    for (const product of products) {
-      const categoryWeight = defaultWeights[product.category] || 1;
+    try {
+      // Get all products
+      const products = await Product.find({});
+      console.log(`Found ${products.length} products`);
       
-      // Update the weight based on category
-      const oldWeight = product.weight;
-      product.weight = categoryWeight;
-      await product.save();
+      // Update each product's weight based on its unit
+      for (const product of products) {
+        console.log(`Processing product: ${product.name} (${product._id})`);
+        console.log(`Current weight: ${product.weight}, unit: ${product.unit}`);
+        
+        let newWeight = product.weight;
+        let needsUpdate = false;
+        
+        // Check if unit contains 'g' (gram) but not 'kg'
+        if (product.unit.includes('g') && !product.unit.includes('kg')) {
+          // Extract the numeric part from the unit (e.g., "500g" -> 500)
+          const unitValue = parseInt(product.unit.replace(/[^0-9]/g, ''), 10);
+          
+          if (!isNaN(unitValue)) {
+            // Set weight to match the unit value in kg
+            newWeight = unitValue / 1000;
+            needsUpdate = true;
+            console.log(`Updating weight for ${product.unit} product to ${newWeight}kg`);
+          }
+        } 
+        // Check if unit contains 'kg'
+        else if (product.unit.includes('kg')) {
+          // Extract the numeric part from the unit (e.g., "1kg" -> 1)
+          const unitValue = parseFloat(product.unit.replace(/[^0-9.]/g, ''));
+          
+          if (!isNaN(unitValue)) {
+            // Set weight to match the unit value
+            newWeight = unitValue;
+            needsUpdate = true;
+            console.log(`Updating weight for ${product.unit} product to ${newWeight}kg`);
+          }
+        }
+        
+        // Update the product if needed
+        if (needsUpdate) {
+          await Product.updateOne({ _id: product._id }, { weight: newWeight });
+          console.log(`Updated weight for ${product.name} from ${product.weight} to ${newWeight}`);
+        } else {
+          console.log(`No update needed for ${product.name}`);
+        }
+      }
       
-      console.log(`Updated product "${product.name}" weight: ${oldWeight}kg -> ${categoryWeight}kg`);
+      console.log('Weight update completed');
+    } catch (error) {
+      console.error('Error updating product weights:', error);
+    } finally {
+      // Disconnect from MongoDB
+      await mongoose.disconnect();
+      console.log('Disconnected from MongoDB');
     }
-    
-    console.log('All products updated successfully');
-    process.exit(0);
-  } catch (error) {
-    console.error('Error updating products:', error);
-    process.exit(1);
-  }
-}
-
-// Run the update function
-updateProductWeights();
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+  });

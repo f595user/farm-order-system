@@ -180,14 +180,32 @@ const readShippingRates = () => {
 };
 
 /**
+ * Convert weight to kg if needed
+ * @param {number} weight - Weight value
+ * @param {string} unit - Weight unit ('g' or 'kg')
+ * @returns {number} Weight in kg
+ */
+const convertToKg = (weight, unit = 'kg') => {
+  if (unit === 'g') {
+    const weightInKg = weight / 1000;
+    console.log(`[SERVER] Converting ${weight}g to ${weightInKg}kg`);
+    return weightInKg;
+  }
+  return weight;
+};
+
+/**
  * Calculate shipping cost based on total weight and destination prefecture
  * @param {number} totalWeight - Total weight in kg
  * @param {string} prefecture - Destination prefecture or city
+ * @param {string} weightUnit - Weight unit ('g' or 'kg')
  * @returns {Promise<number>} Shipping cost
  */
-const calculateShippingCost = async (totalWeight, prefecture) => {
+const calculateShippingCost = async (totalWeight, prefecture, weightUnit = 'kg') => {
   try {
-    console.log(`[SERVER] Calculating shipping cost for weight: ${totalWeight}kg, prefecture: ${prefecture}`);
+    // Convert weight to kg if it's in grams
+    const weightInKg = convertToKg(totalWeight, weightUnit);
+    console.log(`[SERVER] Calculating shipping cost for weight: ${weightInKg}kg, prefecture: ${prefecture}`);
     
     const shippingRates = await readShippingRates();
     console.log(`[SERVER] Loaded ${shippingRates.length} shipping rates`);

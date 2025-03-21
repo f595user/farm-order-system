@@ -13,7 +13,17 @@ export const calculateTotalWeight = (products, quantities) => {
     const product = products.find(p => p._id === productId);
     if (!product) return total;
     
-    return total + (product.weight * quantity);
+    // 単位に基づいて重量を kg に変換
+    let weightInKg;
+    if (product.unit === 'g') {
+      weightInKg = product.weight / 1000; // g から kg への変換
+      console.log(`Converting ${product.weight}g to ${weightInKg}kg for product ${product.name || productId}`);
+    } else {
+      weightInKg = product.weight; // すでに kg の場合
+      console.log(`Using weight ${weightInKg}kg for product ${product.name || productId}`);
+    }
+    
+    return total + (weightInKg * quantity);
   }, 0);
 };
 
