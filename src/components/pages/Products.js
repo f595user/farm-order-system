@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import API from '../../utils/api';
 import ProductDetailModal from './modals/ProductDetailModal';
+import { useAuth } from '../../context/AuthContext';
 
 const Products = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -109,8 +111,20 @@ const Products = () => {
   };
 
   const handleStartOrder = () => {
-    // Navigate to the order page
-    navigate('/order');
+    // Check if user is authenticated before navigating
+    if (isAuthenticated()) {
+      // If authenticated, navigate directly to order page
+      navigate('/order');
+    } else {
+      // If not authenticated, navigate to login with state indicating 
+      // we want to redirect to order page after login
+      navigate('/login', { 
+        state: { 
+          from: '/products',
+          startOrder: true 
+        } 
+      });
+    }
   };
 
   const openProductModal = (product) => {

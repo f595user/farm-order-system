@@ -12,8 +12,35 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get the redirect path from location state or default to home
-  const from = location.state?.from?.pathname || '/';
+  // Get the redirect path from location state
+  const from = location.state?.from?.pathname;
+  
+  // Get the referrer path to determine where the user came from
+  const referrer = location.state?.referrer;
+
+  // Determine the redirect destination based on the path
+  const getRedirectDestination = () => {
+    // If coming from header login button, go to home
+    if (referrer === 'header') {
+      return '/';
+    }
+    
+    // If there's a specific path the user was trying to access (protected route)
+    if (from) {
+      // For specific paths we want to maintain
+      if (from === '/order' || from === '/account' || from.startsWith('/account/')) {
+        return from;
+      }
+      
+      // For products page with "注文を開始" button, redirect to order page
+      if (from === '/products' && location.state?.startOrder) {
+        return '/order';
+      }
+    }
+    
+    // Default fallback is home page
+    return '/';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,8 +56,9 @@ const Login = () => {
       
       await login({ email, password });
       
-      // Redirect to the page they were trying to access or home
-      navigate(from, { replace: true });
+      // Redirect based on our logic
+      const redirectTo = getRedirectDestination();
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || 'ログインに失敗しました。');
     } finally {
@@ -39,7 +67,10 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    googleLogin();
+    // Get the redirect destination
+    const redirectTo = getRedirectDestination();
+    // Pass the redirect path to the googleLogin function
+    googleLogin(redirectTo);
   };
 
   return (

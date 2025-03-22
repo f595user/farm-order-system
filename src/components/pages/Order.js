@@ -498,7 +498,12 @@ const Order = () => {
   const handlePlaceOrder = async () => {
     if (!isAuthenticated()) {
       alert('注文を確定するにはログインしてください。');
-      navigate('/login', { state: { from: location } });
+      // Pass the current location to redirect back to order page after login
+      navigate('/login', { 
+        state: { 
+          from: '/order'
+        } 
+      });
       return;
     }
     

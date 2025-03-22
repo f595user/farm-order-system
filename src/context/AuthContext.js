@@ -195,8 +195,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const googleLogin = () => {
-    window.location.href = '/api/users/auth/google';
+  const googleLogin = (redirectPath) => {
+    // Construct the Google auth URL with the redirect path as a query parameter
+    let authUrl = '/api/users/auth/google';
+    
+    // Add the redirect path as a query parameter if provided
+    if (redirectPath) {
+      authUrl += `?redirect=${encodeURIComponent(redirectPath)}`;
+    }
+    
+    // Redirect to Google auth endpoint
+    window.location.href = authUrl;
   };
 
   const isAuthenticated = () => {

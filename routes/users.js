@@ -7,7 +7,18 @@ const { ensureAuthenticated, ensureOwnerOrAdmin } = require('../middleware/auth'
 // @route   GET /api/users/auth/google
 // @desc    Auth with Google
 // @access  Public
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google', (req, res, next) => {
+  // Check if there's a redirect parameter in the query
+  const redirectTo = req.query.redirect;
+  
+  // Store the redirect path in the session if provided
+  if (redirectTo) {
+    req.session.redirectTo = redirectTo;
+  }
+  
+  // Continue with Google authentication
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
 // @route   GET /api/users/auth/google/callback
 // @desc    Google auth callback
@@ -16,8 +27,14 @@ router.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    // Successful authentication, redirect home
-    res.redirect('/');
+    // Get the intended redirect path from session if available
+    const redirectTo = req.session.redirectTo || '/';
+    
+    // Clear the redirect path from session
+    delete req.session.redirectTo;
+    
+    // Successful authentication, redirect to the intended page
+    res.redirect(redirectTo);
   }
 );
 

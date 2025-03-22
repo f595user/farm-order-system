@@ -139,7 +139,13 @@ const Header = () => {
         <div className="user-actions">
           {!isAuthenticated() ? (
             <div className="auth-buttons">
-              <Link to="/login" className="btn">ログイン</Link>
+              <Link 
+                to="/login" 
+                state={{ referrer: 'header' }} 
+                className="btn"
+              >
+                ログイン
+              </Link>
               <Link to="/register" className="btn btn-primary">登録</Link>
             </div>
           ) : (
